@@ -55,8 +55,6 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         rvMessagesList = findViewById(R.id.rv_lists);
         numberAccountMap = initializeMap();
-//        Intent intent = new Intent(this, ChartingActivity.class);
-//        startActivity(intent);
         btnExport = findViewById(R.id.btn_export);
         btnExport.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,7 +68,6 @@ public class HomeActivity extends AppCompatActivity {
                 export_csv_File = new File(EXPORT_FILE_NAME);
                 if (!export_csv_File.exists()) {
                     try {
-//                        export_csv_File.mkdirs();
                         export_csv_File.createNewFile();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -80,6 +77,9 @@ public class HomeActivity extends AppCompatActivity {
                 csvWriter.exportMessages(export_csv_File, parsedList, CSV_HEADER, ",");
             }
         });
+       // Intent intent = new Intent(this, ChartingActivity.class);
+       // startActivity(intent);
+
     }
 
     public boolean checkIsDebit(String message, String account) {
@@ -220,6 +220,10 @@ public class HomeActivity extends AppCompatActivity {
             spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
             String strMsg = message.getMsg();
             spendingModel.setAmount(parseAmount(strMsg, spendingModel.getAccount()));
+            if (spendingModel.getAmount() == 0) {
+                // Mostly a auth message or something. skip it!.
+                continue;
+            }
             spendingModel.setRawMessage(message);
             spendingModel.setMerchant(parseMerchant(strMsg, spendingModel.getAccount()));
             Log.d("Time", message.getTime());
