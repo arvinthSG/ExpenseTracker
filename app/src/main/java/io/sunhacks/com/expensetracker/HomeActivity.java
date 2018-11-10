@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class HomeActivity extends AppCompatActivity {
 
     public static Map<String, String> initializeMap() {
         Map<String, String> numberAccountMap = new HashMap<>();
-        numberAccountMap.put("20736", "MidFirst");
+        //numberAccountMap.put("20736", "MidFirst");
         numberAccountMap.put("347268", "Discover");
         numberAccountMap.put("24273", "Chase");
         return numberAccountMap;
@@ -119,11 +120,53 @@ public class HomeActivity extends AppCompatActivity {
         for (Sms message : messages) {
             if (numberAccountMap.containsKey(message.getAddress())) {
                 filteredList.add(message);
-
-                //   Log.d("message", message.toString());
             }
         }
         return filteredList;
+    }
+
+    public String parseMerchant(String smsString, String account) {
+        String merchant = null;
+        Pattern pattern;
+        if (account.equals("Discover")) {
+            pattern = Pattern.compile("at (.*?) was", Pattern.MULTILINE);
+        } else if (account.equals("Chase")) {
+            Log.d(LOG_TAG, smsString);
+            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+        } else {
+            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+        }
+
+        Matcher matcher = pattern.matcher(smsString);
+
+        while (matcher.find()) {
+            merchant = matcher.group(1);
+            Log.d(LOG_TAG, matcher.group(1));
+        }
+        return merchant;
+    }
+
+    public Double parseAmount(String smsString, String account) {
+        Double d = 0.0;
+        Pattern pattern = null;
+        if (account.equals("Discover")) {
+            // Discover messages are of format
+            // Discover Card: Transaction of <Amount> at <Merchant> was made on <date>
+            pattern = Pattern.compile("Transaction of \\$(.*?) at", Pattern.MULTILINE);
+        } else if (account.equals("Chase")) {
+            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+        } else {
+            Log.d(LOG_TAG, smsString);
+            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+        }
+
+        Matcher matcher = pattern.matcher(smsString);
+
+        while (matcher.find()) {
+            d = Double.parseDouble(matcher.group(1));
+            Log.d(LOG_TAG, matcher.group(1));
+        }
+        return d;
     }
 
     public List<SpendingModel> parseSms(List<Sms> messages) {
@@ -132,17 +175,12 @@ public class HomeActivity extends AppCompatActivity {
             SpendingModel spendingModel = new SpendingModel();
             spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
             String strMsg = message.getMsg();
-            if (spendingModel.getAccount().equals("Discover")) {
-                // Discover messages are of format
-                // Discover Card: Transaction of <Amount> at <Merchant> was made on <date>
-                Pattern pattern = Pattern.compile("Transaction of $(.*?) at");
-                Matcher matcher = pattern.matcher(strMsg);
-                while (matcher.find()) {
-                    Log.d("Amount is", matcher.group(1));
-                }
-            }
+            spendingModel.setAmount(parseAmount(strMsg, spendingModel.getAccount()));
             spendingModel.setRawMessage(message);
-//            spendingModel.setSmsTime(new Date(message.getTime()));
+            spendingModel.setMerchant(parseMerchant(strMsg, spendingModel.getAccount()));
+            Log.d("Time", message.getTime());
+            Date d = new Date((long) Double.parseDouble(message.getTime()));
+            spendingModel.setSmsTime(d);
         }
         return parsedList;
     }
