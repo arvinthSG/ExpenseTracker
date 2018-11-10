@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +19,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -35,35 +38,44 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         rvMessagesList = findViewById(R.id.rv_lists);
+    }
 
+    public static Map<String, String> initializeMap() {
+        Map<String, String> numberAccountMap = new HashMap<>();
+        numberAccountMap.put("20736", "MidFirst");
+        numberAccountMap.put("347268", "Discover");
+        numberAccountMap.put("24273", "Chase");
+        return numberAccountMap;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(LOG_TAG, "onResume()");
-        messages = new ArrayList();
+        List<Sms> allMessages;
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
             getPermission();
         } else {
-            messages = getAllMessages();
+            allMessages = getAllMessages();
+            messages = filterSms(allMessages, initializeMap());
         }
         rvAdapter = new MessageAdapter(messages);
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
     }
-
     public List<Sms> getAllMessages() {
-        List<Sms> lstSms = new ArrayList<Sms>();
-        Sms objSms = new Sms();
+        List<Sms> lstSms = new ArrayList<>();
+        new Sms();
+        Sms objSms;
         Uri message = Uri.parse("content://sms/");
         ContentResolver cr = getContentResolver();
 
         Cursor c = cr.query(message, null, null, null, null);
         startManagingCursor(c);
+        assert c != null;
         int totalSMS = c.getCount();
 
         if (c.moveToFirst()) {
@@ -90,6 +102,17 @@ public class HomeActivity extends AppCompatActivity {
         return lstSms;
     }
 
+    public List<Sms> filterSms(List<Sms> messages, Map<String, String> numberAccountsMap) {
+        List<Sms> filteredList = new ArrayList<>();
+        for (Sms message : messages) {
+            if (numberAccountsMap.containsKey(message.getAddress())) {
+                filteredList.add(message);
+                Log.d("message", message.toString());
+            }
+        }
+        return filteredList;
+    }
+
     public void getPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                 Manifest.permission.READ_SMS)) {
@@ -106,7 +129,7 @@ public class HomeActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         Log.d(LOG_TAG, "onRequestPermisionResults");
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_READ_CONTACTS: {
@@ -118,7 +141,6 @@ public class HomeActivity extends AppCompatActivity {
                 } else {
                     //SHow message to User
                 }
-                return;
             }
         }
 
@@ -128,7 +150,7 @@ public class HomeActivity extends AppCompatActivity {
 
         private List messageList;
 
-        public MessageAdapter(List<String> messages) {
+        MessageAdapter(List<String> messages) {
             messageList = messages;
         }
 
@@ -152,10 +174,10 @@ public class HomeActivity extends AppCompatActivity {
             return messageList.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
+        class ViewHolder extends RecyclerView.ViewHolder {
             private TextView tvMessageBody;
 
-            public ViewHolder(View itemView) {
+            ViewHolder(View itemView) {
                 super(itemView);
                 tvMessageBody = itemView.findViewById(R.id.tv_msg_body);
             }
