@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -30,6 +32,7 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView rvMessagesList = null;
     private MessageAdapter rvAdapter = null;
     private List messages = null;
+    private Map<String, String> numberAccountMap = null;
 
     private static final String LOG_TAG = "EXPENSE_TRACKER";
 
@@ -38,6 +41,7 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         rvMessagesList = findViewById(R.id.rv_lists);
+        numberAccountMap = initializeMap();
     }
 
     public static Map<String, String> initializeMap() {
@@ -59,13 +63,15 @@ public class HomeActivity extends AppCompatActivity {
             getPermission();
         } else {
             allMessages = getAllMessages();
-            messages = filterSms(allMessages, initializeMap());
+            messages = filterSms(allMessages);
+            parseSms(messages);
         }
         rvAdapter = new MessageAdapter(messages);
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
     }
+
     public List<Sms> getAllMessages() {
         List<Sms> lstSms = new ArrayList<>();
         new Sms();
@@ -102,15 +108,37 @@ public class HomeActivity extends AppCompatActivity {
         return lstSms;
     }
 
-    public List<Sms> filterSms(List<Sms> messages, Map<String, String> numberAccountsMap) {
+    public List<Sms> filterSms(List<Sms> messages) {
         List<Sms> filteredList = new ArrayList<>();
         for (Sms message : messages) {
-            if (numberAccountsMap.containsKey(message.getAddress())) {
+            if (numberAccountMap.containsKey(message.getAddress())) {
                 filteredList.add(message);
-                Log.d("message", message.toString());
+
+                //   Log.d("message", message.toString());
             }
         }
         return filteredList;
+    }
+
+    public List<SpendingModel> parseSms(List<Sms> messages) {
+        List<SpendingModel> parsedList = new ArrayList<>();
+        for (Sms message : messages) {
+            SpendingModel spendingModel = new SpendingModel();
+            spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
+            String strMsg = message.getMsg();
+            if (spendingModel.getAccount().equals("Discover")) {
+                // Discover messages are of format
+                // Discover Card: Transaction of <Amount> at <Merchant> was made on <date>
+                Pattern pattern = Pattern.compile("Transaction of $(.*?) at");
+                Matcher matcher = pattern.matcher(strMsg);
+                while (matcher.find()) {
+                    Log.d("Amount is", matcher.group(1));
+                }
+            }
+            spendingModel.setRawMessage(message);
+//            spendingModel.setSmsTime(new Date(message.getTime()));
+        }
+        return parsedList;
     }
 
     public void getPermission() {
@@ -147,7 +175,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
-
         private List messageList;
 
         MessageAdapter(List<String> messages) {
