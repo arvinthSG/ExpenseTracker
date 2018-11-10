@@ -18,6 +18,10 @@ public class SpendingModel {
     //OMG. When did I spend so much?
     private Date _smsTime;
 
+    //Hold on, did I spend this, or did someone give me money?
+    private boolean _debit; // True = I spent, False = I got money!
+
+
     public Date getSmsTime() {
         return _smsTime;
     }
@@ -64,5 +68,13 @@ public class SpendingModel {
 
     public void setRawMessage(Sms _rawMessage) {
         this._rawMessage = _rawMessage;
+    }
+
+    public boolean isDebit() {
+        return _debit;
+    }
+
+    public void setDebit(boolean _debit) {
+        this._debit = _debit;
     }
 }
