@@ -1,6 +1,10 @@
+
 package io.sunhacks.com.expensetracker;
 
 import java.util.Date;
+
+import io.sunhacks.com.expensetracker.Sms;
+
 
 public class SpendingModel {
 
@@ -14,6 +18,7 @@ public class SpendingModel {
     private String _account;
     // Raw message body just in case we mess up parsing.
     private Sms _rawMessage;
+
 
     //OMG. When did I spend so much?
     private Date _smsTime;
@@ -29,6 +34,7 @@ public class SpendingModel {
     public void setSmsTime(Date _smsTime) {
         this._smsTime = _smsTime;
     }
+
 
     public Double getAmount() {
         return _amount;
@@ -69,6 +75,7 @@ public class SpendingModel {
     public void setRawMessage(Sms _rawMessage) {
         this._rawMessage = _rawMessage;
     }
+
 
     public boolean isDebit() {
         return _debit;
