@@ -25,8 +25,9 @@ public class ChartingActivity extends AppCompatActivity {
     public static String TAG = "ChartingActivity";
 
     public float[] yData = {25f, 45f, 10f, 20f};
-    public String[] xData = {"Food", "Entertainment", "Education", "Others"};
-
+    public String[] xData = {"Food", "Entertainment", "Transport", "Others"};
+    public String[] TransportCategories = {"Uber", "Lyft", "Lime", "Bird", "Razer"};
+    public float[] TransportData = { 100.32f, 50.9f, 120.3f, 30.3f, 20.6f};
     PieChart pieChart;
 
     @Override
@@ -70,6 +71,7 @@ public class ChartingActivity extends AppCompatActivity {
                     }
                 }
                 String employee = xData[pos1];
+                
                 Toast.makeText(ChartingActivity.this, "" +
                         "Category " + employee + "\n" + "Spending: " + sales + "%", Toast.LENGTH_LONG).show();
             }

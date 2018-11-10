@@ -20,7 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ChartingActivity"></activity>
+        <activity android:name=".ChartingActivity" />
+        <activity android:name=".IndividualExpense"></activity>
     </application>
 
 </manifest>

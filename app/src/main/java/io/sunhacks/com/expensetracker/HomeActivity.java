@@ -78,6 +78,8 @@ public class HomeActivity extends AppCompatActivity {
        // Intent intent = new Intent(this, ChartingActivity.class);
        // startActivity(intent);
 
+//        Intent intent = new Intent(this, IndividualExpense.class);
+//        startActivity(intent);
     }
 
     public boolean checkIsDebit(String message, String account) {
