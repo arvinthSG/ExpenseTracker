@@ -4,4 +4,10 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="row_padding_vertical">10dp</dimen>
+    <dimen name="transactionMerchantTextSize">16sp</dimen>
+    <dimen name="amountTextSize">17sp</dimen>
+    <dimen name="accountTypeTextSize">15sp</dimen>
+    <dimen name="dateTextSize">15sp</dimen>
+    <dimen name="marginMerchanttop">5dp</dimen>
+    <dimen name="marginDivider">10dp</dimen>
 </resources>
