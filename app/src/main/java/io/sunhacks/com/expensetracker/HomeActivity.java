@@ -2,7 +2,6 @@ package io.sunhacks.com.expensetracker;
 
 import android.Manifest;
 import android.content.ContentResolver;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -24,6 +23,7 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -46,8 +46,22 @@ public class HomeActivity extends AppCompatActivity {
     private Map<String, String> numberAccountMap = null;
     private static final String EXPORT_FILE_NAME = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "message_data1.csv";
     private static final String CSV_HEADER = "Amount,Merchant,Category,Account,Time";
-
+    public Map<String, List<String>> merchantCategoryMap = null;
     private static final String LOG_TAG = "EXPENSE_TRACKER";
+
+    public void initMerchantCategoryMap() {
+        merchantCategoryMap = new HashMap<>();
+        List<String> transportBusinesses = Arrays.asList(getResources().getStringArray(R.array.transportation));
+        List<String> foodBusinesses = Arrays.asList(getResources().getStringArray(R.array.food));
+        List<String> apparelBusinesses = Arrays.asList(getResources().getStringArray(R.array.apparel));
+        List<String> onlineBusinesses = Arrays.asList(getResources().getStringArray(R.array.online));
+        List<String> superMarkets = Arrays.asList(getResources().getStringArray(R.array.supermarket));
+        merchantCategoryMap.put("Transport", transportBusinesses);
+        merchantCategoryMap.put("Food", foodBusinesses);
+        merchantCategoryMap.put("Apparel", apparelBusinesses);
+        merchantCategoryMap.put("Online", onlineBusinesses);
+        merchantCategoryMap.put("SuperMarket", superMarkets);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +70,7 @@ public class HomeActivity extends AppCompatActivity {
         rvMessagesList = findViewById(R.id.rv_lists);
         numberAccountMap = initializeMap();
         btnExport = findViewById(R.id.btn_export);
+        initMerchantCategoryMap();
         btnExport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -120,6 +135,27 @@ public class HomeActivity extends AppCompatActivity {
         rvAdapter.notifyDataSetChanged();
     }
 
+    public String getCategory(String needle) {
+        // Iterate through the haystack map, and then get the key
+        String retval = "Other";
+        boolean entryFound = false;
+        Log.d(LOG_TAG, "getCategory");
+        for (Map.Entry<String, List<String>> eachCategory : merchantCategoryMap.entrySet()) {
+            // Now, go through the entire list and see if we can recognize anything
+            String key = eachCategory.getKey();
+            for (String comp : eachCategory.getValue()) {
+                if (needle.toLowerCase().contains(comp.toLowerCase())) {
+                    // YAAY Match.
+                    retval = key;
+                    entryFound = true;
+                    break;
+                }
+            }
+            if (entryFound) break;
+        }
+        return retval;
+    }
+
     public List<Sms> getAllMessages() {
         List<Sms> lstSms = new ArrayList<>();
         Log.i(LOG_TAG, "getAllMessages");
@@ -172,36 +208,43 @@ public class HomeActivity extends AppCompatActivity {
     public String parseMerchant(String smsString, String account) {
         String merchant = null;
         Pattern pattern;
-        if (account.equals(Constants.DISCOVER)) {
-            pattern = Pattern.compile("at (.*?) was", Pattern.MULTILINE);
-        } else if (account.equals(Constants.CHASE)) {
-            Log.d(LOG_TAG, smsString);
-            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
-        } else {
-            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+        switch (account) {
+            case Constants.DISCOVER:
+                pattern = Pattern.compile("at (.*?) was", Pattern.MULTILINE);
+                Matcher matcher = pattern.matcher(smsString);
+
+                while (matcher.find()) {
+                    merchant = matcher.group(1);
+                }
+                break;
+            case Constants.CHASE:
+                merchant = "Credit";
+                break;
+            default:
+                merchant = "NA";
+                break;
         }
 
-        Matcher matcher = pattern.matcher(smsString);
 
-        while (matcher.find()) {
-            merchant = matcher.group(1);
-            Log.d(LOG_TAG, matcher.group(1));
-        }
         return merchant;
     }
 
     public Double parseAmount(String smsString, String account) {
         Double d = 0.0;
-        Pattern pattern = null;
-        if (account.equals(Constants.DISCOVER)) {
-            // Discover messages are of format
-            // Discover Card: Transaction of <Amount> at <Merchant> was made on <date>
-            pattern = Pattern.compile("Transaction of \\$(.*?) at", Pattern.MULTILINE);
-        } else if (account.equals(Constants.CHASE)) {
-            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
-        } else {
-            Log.d(LOG_TAG, smsString);
-            pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+        Pattern pattern;
+        switch (account) {
+            case Constants.DISCOVER:
+                // Discover messages are of format
+                // Discover Card: Transaction of <Amount> at <Merchant> was made on <date>
+                pattern = Pattern.compile("Transaction of \\$(.*?) at", Pattern.MULTILINE);
+                break;
+            case Constants.CHASE:
+                pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+                break;
+            default:
+                Log.d(LOG_TAG, smsString);
+                pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
+                break;
         }
 
         Matcher matcher = pattern.matcher(smsString);
@@ -214,6 +257,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public List<SpendingModel> parseSms(List<Sms> messages) {
+
         List<SpendingModel> parsedList = new ArrayList<>();
         for (Sms message : messages) {
             SpendingModel spendingModel = new SpendingModel();
@@ -230,6 +274,11 @@ public class HomeActivity extends AppCompatActivity {
             Date d = new Date((long) Double.parseDouble(message.getTime()));
             spendingModel.setSmsTime(d);
             spendingModel.setDebit(checkIsDebit(strMsg, spendingModel.getAccount()));
+            if (spendingModel.isDebit()) {
+                spendingModel.setCategory(getCategory(spendingModel.getMerchant()));
+            } else {
+                spendingModel.setCategory("Income");
+            }
             parsedList.add(spendingModel);
         }
         return parsedList;

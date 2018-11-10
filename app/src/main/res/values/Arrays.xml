@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="transportation" translatable="false">
+        <item>BIRD</item>
+        <item>ENTERPRISE</item>
+        <item>LIMEBIKE</item>>
+        <item>LYFT</item>
+        <item>PEORIA</item>
+        <item>UBER</item>
+        <item>SPIRIT</item>
+    </string-array>
+    <string-array name="food" translatable="false">
+        <item>COFFEE</item>
+        <item>STARBUCKS</item>
+        <item>DUTCHBRO</item>
+        <item>CABIN TEMPE</item>
+        <item>Chennai Express</item>
+        <item>MCDONALD</item>
+        <item>ARAMARK</item>
+        <item>ZA CUCINA</item>
+        <item>POSTMATES</item>
+        <item>CHIPOTLE</item>
+        <item>PIZZA</item>
+        <item>Subway</item>
+        <item>HUNGRY HOWIES</item>
+        <item>BURGER KING</item>
+        <item>TACO BELL</item>
+    </string-array>
+    <string-array name="online" translatable="false">
+        <item>Spotify</item>
+        <item>AMZN</item>
+        <item>GOOGLE</item>
+        <item>SIMPLEMOBILE</item>
+    </string-array>
+    <string-array name="apparel" translatable="false">
+        <item>OLD NAVY</item>
+        <item>GAP</item>
+    </string-array>
+    <string-array name="supermarket" translatable="false">
+        <item>Lotus Market</item>
+        <item>Wal-Mart</item>
+        <item>FOOD CITY</item>
+    </string-array>
+</resources>
