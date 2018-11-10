@@ -59,7 +59,6 @@ public class HomeActivity extends AppCompatActivity {
         btnExport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i(LOG_TAG, "onClick() Export");
                 if (csvWriter == null) {
                     csvWriter = new CSVWriter();
                 }
@@ -73,7 +72,6 @@ public class HomeActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-                Log.i(LOG_TAG, "ParsedList " + parsedList.size());
                 csvWriter.exportMessages(export_csv_File, parsedList, CSV_HEADER, ",");
             }
         });
@@ -83,16 +81,16 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public boolean checkIsDebit(String message, String account) {
-        if (account.equals("Discover")) {
+        if (account.equals(Constants.DISCOVER)) {
             return true;
-        } else return !account.equals("Chase");
+        } else return !account.equals(Constants.CHASE);
     }
 
     public static Map<String, String> initializeMap() {
         Map<String, String> numberAccountMap = new HashMap<>();
         //numberAccountMap.put("20736", "MidFirst");
-        numberAccountMap.put("347268", "Discover");
-        numberAccountMap.put("24273", "Chase");
+        numberAccountMap.put(Constants.DISCOVER_PHONE_NO, Constants.DISCOVER);
+        numberAccountMap.put(Constants.CHASE_PHONE_NO, Constants.CHASE);
         return numberAccountMap;
     }
 
@@ -172,9 +170,9 @@ public class HomeActivity extends AppCompatActivity {
     public String parseMerchant(String smsString, String account) {
         String merchant = null;
         Pattern pattern;
-        if (account.equals("Discover")) {
+        if (account.equals(Constants.DISCOVER)) {
             pattern = Pattern.compile("at (.*?) was", Pattern.MULTILINE);
-        } else if (account.equals("Chase")) {
+        } else if (account.equals(Constants.CHASE)) {
             Log.d(LOG_TAG, smsString);
             pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
         } else {
@@ -193,11 +191,11 @@ public class HomeActivity extends AppCompatActivity {
     public Double parseAmount(String smsString, String account) {
         Double d = 0.0;
         Pattern pattern = null;
-        if (account.equals("Discover")) {
+        if (account.equals(Constants.DISCOVER)) {
             // Discover messages are of format
             // Discover Card: Transaction of <Amount> at <Merchant> was made on <date>
             pattern = Pattern.compile("Transaction of \\$(.*?) at", Pattern.MULTILINE);
-        } else if (account.equals("Chase")) {
+        } else if (account.equals(Constants.CHASE)) {
             pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
         } else {
             Log.d(LOG_TAG, smsString);
