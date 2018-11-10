@@ -45,6 +45,11 @@ public class HomeActivity extends AppCompatActivity {
         numberAccountMap = initializeMap();
     }
 
+    public boolean checkIsDebit(String message, String account) {
+        if (account.equals("Discover")) {
+            return true;
+        } else return !account.equals("Chase");
+    }
     public static Map<String, String> initializeMap() {
         Map<String, String> numberAccountMap = new HashMap<>();
         //numberAccountMap.put("20736", "MidFirst");
@@ -181,6 +186,8 @@ public class HomeActivity extends AppCompatActivity {
             Log.d("Time", message.getTime());
             Date d = new Date((long) Double.parseDouble(message.getTime()));
             spendingModel.setSmsTime(d);
+            spendingModel.setDebit(checkIsDebit(strMsg, spendingModel.getAccount()));
+            parsedList.add(spendingModel);
         }
         return parsedList;
     }
