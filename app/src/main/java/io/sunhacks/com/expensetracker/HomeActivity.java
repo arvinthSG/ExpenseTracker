@@ -67,45 +67,51 @@ public class HomeActivity extends AppCompatActivity {
             messages = filterSms(allMessages);
             parseSms(messages);
         }
+        Log.i(LOG_TAG, "aterPermissionCheck()");
         rvAdapter = new MessageAdapter(messages);
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
+        Log.i(LOG_TAG, "onResume() End");
     }
 
     public List<Sms> getAllMessages() {
         List<Sms> lstSms = new ArrayList<>();
-        new Sms();
+        Log.i(LOG_TAG, "getAllMessages");
         Sms objSms;
-        Uri message = Uri.parse("content://sms/");
-        ContentResolver cr = getContentResolver();
+        try {
+            Uri message = Uri.parse("content://sms/");
+            ContentResolver cr = getContentResolver();
 
-        Cursor c = cr.query(message, null, null, null, null);
-        startManagingCursor(c);
-        assert c != null;
-        int totalSMS = c.getCount();
+            Cursor c = cr.query(message, null, null, null, null);
+            startManagingCursor(c);
+            assert c != null;
+            int totalSMS = c.getCount();
 
-        if (c.moveToFirst()) {
-            for (int i = 0; i < totalSMS; i++) {
+            if (c.moveToFirst()) {
+                for (int i = 0; i < totalSMS; i++) {
 
-                objSms = new Sms();
-                objSms.setId(c.getString(c.getColumnIndexOrThrow("_id")));
-                objSms.setAddress(c.getString(c
-                        .getColumnIndexOrThrow("address")));
-                objSms.setMsg(c.getString(c.getColumnIndexOrThrow("body")));
-                objSms.setReadState(c.getString(c.getColumnIndex("read")));
-                objSms.setTime(c.getString(c.getColumnIndexOrThrow("date")));
-                if (c.getString(c.getColumnIndexOrThrow("type")).contains("1")) {
-                    objSms.setFolderName("inbox");
-                } else {
-                    objSms.setFolderName("sent");
+                    objSms = new Sms();
+                    objSms.setId(c.getString(c.getColumnIndexOrThrow("_id")));
+                    objSms.setAddress(c.getString(c
+                            .getColumnIndexOrThrow("address")));
+                    objSms.setMsg(c.getString(c.getColumnIndexOrThrow("body")));
+                    objSms.setReadState(c.getString(c.getColumnIndex("read")));
+                    objSms.setTime(c.getString(c.getColumnIndexOrThrow("date")));
+                    if (c.getString(c.getColumnIndexOrThrow("type")).contains("1")) {
+                        objSms.setFolderName("inbox");
+                    } else {
+                        objSms.setFolderName("sent");
+                    }
+
+                    lstSms.add(objSms);
+                    c.moveToNext();
                 }
-
-                lstSms.add(objSms);
-                c.moveToNext();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        c.close();
+        Log.i(LOG_TAG, "getAllMessages end");
         return lstSms;
     }
 
