@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -17,8 +18,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,10 +35,17 @@ public class HomeActivity extends AppCompatActivity {
 
 
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
+    private static final int MY_PERMISSIONS_WRITE_STORAGE = 2;
     private RecyclerView rvMessagesList = null;
     private MessageAdapter rvAdapter = null;
+    private Button btnExport = null;
+
+    private CSVWriter csvWriter = null;
     private List messages = null;
+    private List parsedList = null;
     private Map<String, String> numberAccountMap = null;
+    private static final String EXPORT_FILE_NAME = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "message_data1.csv";
+    private static final String CSV_HEADER = "Amount,Merchant,Category,Account,Time";
 
     private static final String LOG_TAG = "EXPENSE_TRACKER";
 
@@ -46,6 +57,29 @@ public class HomeActivity extends AppCompatActivity {
         numberAccountMap = initializeMap();
 //        Intent intent = new Intent(this, ChartingActivity.class);
 //        startActivity(intent);
+        btnExport = findViewById(R.id.btn_export);
+        btnExport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(LOG_TAG, "onClick() Export");
+                if (csvWriter == null) {
+                    csvWriter = new CSVWriter();
+                }
+
+                File export_csv_File;
+                export_csv_File = new File(EXPORT_FILE_NAME);
+                if (!export_csv_File.exists()) {
+                    try {
+//                        export_csv_File.mkdirs();
+                        export_csv_File.createNewFile();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.i(LOG_TAG, "ParsedList " + parsedList.size());
+                csvWriter.exportMessages(export_csv_File, parsedList, CSV_HEADER, ",");
+            }
+        });
     }
 
     public boolean checkIsDebit(String message, String account) {
@@ -53,6 +87,7 @@ public class HomeActivity extends AppCompatActivity {
             return true;
         } else return !account.equals("Chase");
     }
+
     public static Map<String, String> initializeMap() {
         Map<String, String> numberAccountMap = new HashMap<>();
         //numberAccountMap.put("20736", "MidFirst");
@@ -67,20 +102,22 @@ public class HomeActivity extends AppCompatActivity {
         Log.d(LOG_TAG, "onResume()");
         List<Sms> allMessages;
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
+            Log.i(LOG_TAG, "permission not granted");
             getPermission();
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_WRITE_STORAGE);
         } else {
             allMessages = getAllMessages();
             messages = filterSms(allMessages);
-            parseSms(messages);
+            parsedList = parseSms(messages);
         }
-        Log.i(LOG_TAG, "aterPermissionCheck()");
+        messages = new ArrayList();
         rvAdapter = new MessageAdapter(messages);
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
-        Log.i(LOG_TAG, "onResume() End");
     }
 
     public List<Sms> getAllMessages() {
@@ -119,7 +156,6 @@ public class HomeActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Log.i(LOG_TAG, "getAllMessages end");
         return lstSms;
     }
 
@@ -197,7 +233,8 @@ public class HomeActivity extends AppCompatActivity {
 
     public void getPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.READ_SMS)) {
+                Manifest.permission.READ_SMS) && ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             // Show an explanation to the user *asynchronously* -- don't block
             // this thread waiting for the user's response! After the user
             // sees the explanation, try again to request the permission.
@@ -206,6 +243,7 @@ public class HomeActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_SMS},
                     MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_WRITE_STORAGE);
         }
     }
 

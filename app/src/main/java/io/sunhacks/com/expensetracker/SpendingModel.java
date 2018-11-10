@@ -9,7 +9,7 @@ import io.sunhacks.com.expensetracker.Sms;
 public class SpendingModel {
 
     // Amount that was spent
-    private Double _amount;
+    private double _amount;
     // Where did I spend my Money!!?
     private String _merchant;
     // Well, what kind of place is that?
@@ -35,8 +35,7 @@ public class SpendingModel {
         this._smsTime = _smsTime;
     }
 
-
-    public Double getAmount() {
+    public double getAmount() {
         return _amount;
     }
 
