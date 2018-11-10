@@ -2,6 +2,7 @@ package io.sunhacks.com.expensetracker;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -42,6 +43,8 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         rvMessagesList = findViewById(R.id.rv_lists);
         numberAccountMap = initializeMap();
+//        Intent intent = new Intent(this, ChartingActivity.class);
+//        startActivity(intent);
     }
 
     public static Map<String, String> initializeMap() {
