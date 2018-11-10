@@ -2,6 +2,7 @@ package io.sunhacks.com.expensetracker;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -90,8 +91,8 @@ public class HomeActivity extends AppCompatActivity {
                 csvWriter.exportMessages(export_csv_File, parsedList, CSV_HEADER, ",");
             }
         });
-       // Intent intent = new Intent(this, ChartingActivity.class);
-       // startActivity(intent);
+        // Intent intent = new Intent(this, ChartingActivity.class);
+        // startActivity(intent);
 
 //        Intent intent = new Intent(this, IndividualExpense.class);
 //        startActivity(intent);
@@ -129,7 +130,7 @@ public class HomeActivity extends AppCompatActivity {
             parsedList = parseSms(messages);
         }
         messages = new ArrayList();
-        rvAdapter = new MessageAdapter(messages);
+        rvAdapter = new MessageAdapter(parsedList, this);
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
@@ -321,14 +322,16 @@ public class HomeActivity extends AppCompatActivity {
 
     public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
         private List messageList;
+        private Context mContext;
 
-        MessageAdapter(List<String> messages) {
+        MessageAdapter(List<String> messages, Context context) {
             messageList = messages;
+            mContext = context;
         }
 
         @Override
         public MessageAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listview, null, false);
+            View view = LayoutInflater.from(mContext).inflate(R.layout.listview, null, false);
             view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             return new ViewHolder(view);
         }
@@ -336,8 +339,22 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(MessageAdapter.ViewHolder holder, int position) {
             if (holder != null) {
-                Sms newSms = (Sms) messageList.get(position);
-                holder.tvMessageBody.setText(newSms.getMsg());
+                SpendingModel newSms = (SpendingModel) messageList.get(position);
+                holder.tvMessageMerchant.setText(newSms.getMerchant());
+                String amount = String.valueOf(newSms.getAmount());
+                if (newSms.isDebit()) {
+                    holder.tvMessageAmount.setTextColor(ContextCompat.getColor(mContext, R.color.amountDebitColor));
+                    amount = "- " + amount;
+                } else {
+                    holder.tvMessageAmount.setTextColor(ContextCompat.getColor(mContext, R.color.amountCreditCOlor));
+                }
+                holder.tvMessageAmount.setText(amount);
+                holder.tvMessageAccount.setText(newSms.getAccount());
+                Date smsDate = newSms.getSmsTime();
+                smsDate.getDay();
+                String date = (String) android.text.format.DateFormat.format("MMM-dd", smsDate);
+                holder.tvMessageDate.setText(date);
+
             }
         }
 
@@ -347,11 +364,17 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            private TextView tvMessageBody;
+            private TextView tvMessageMerchant;
+            private TextView tvMessageAmount;
+            private TextView tvMessageAccount;
+            private TextView tvMessageDate;
 
             ViewHolder(View itemView) {
                 super(itemView);
-                tvMessageBody = itemView.findViewById(R.id.tv_msg_body);
+                tvMessageMerchant = itemView.findViewById(R.id.tv_msg_merchant);
+                tvMessageAmount = itemView.findViewById(R.id.tv_msg_amount);
+                tvMessageAccount = itemView.findViewById(R.id.tv_msg_account_type);
+                tvMessageDate = itemView.findViewById(R.id.tv_msg_date);
             }
         }
     }

@@ -27,7 +27,7 @@ public class ChartingActivity extends AppCompatActivity {
     public float[] yData = {25f, 45f, 10f, 20f};
     public String[] xData = {"Food", "Entertainment", "Transport", "Others"};
     public String[] TransportCategories = {"Uber", "Lyft", "Lime", "Bird", "Razer"};
-    public float[] TransportData = { 100.32f, 50.9f, 120.3f, 30.3f, 20.6f};
+    public float[] TransportData = {100.32f, 50.9f, 120.3f, 30.3f, 20.6f};
     PieChart pieChart;
 
     @Override
@@ -64,14 +64,14 @@ public class ChartingActivity extends AppCompatActivity {
                 int pos1 = 0;
                 float sales = h.getY();
 
-                for(int i = 0; i < yData.length; i++){
-                    if(yData[i] == sales){
+                for (int i = 0; i < yData.length; i++) {
+                    if (yData[i] == sales) {
                         pos1 = i;
                         break;
                     }
                 }
                 String employee = xData[pos1];
-                
+
                 Toast.makeText(ChartingActivity.this, "" +
                         "Category " + employee + "\n" + "Spending: " + sales + "%", Toast.LENGTH_LONG).show();
             }
@@ -88,8 +88,8 @@ public class ChartingActivity extends AppCompatActivity {
         Log.d(TAG, "addDataSet started");
         ArrayList<PieEntry> yEntrys = new ArrayList<>();
 
-        for(int i = 0; i < yData.length; i++){
-            yEntrys.add(new PieEntry(yData[i] , xData[i]));
+        for (int i = 0; i < yData.length; i++) {
+            yEntrys.add(new PieEntry(yData[i], xData[i]));
         }
 
         //create the data set

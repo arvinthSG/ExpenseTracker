@@ -39,7 +39,7 @@ public class SpendingModel {
         return _amount;
     }
 
-    public void setAmount(Double _amount) {
+    public void setAmount(double _amount) {
         this._amount = _amount;
     }
 
