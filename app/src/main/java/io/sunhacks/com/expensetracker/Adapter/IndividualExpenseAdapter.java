@@ -20,15 +20,12 @@ public class IndividualExpenseAdapter extends RecyclerView.Adapter<IndividualExp
 
     private List<IndividualExpenseModel> individualExpensesListModel;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView title;
-        public ProgressBar progressBar;
-
-        public MyViewHolder(View view) {
-            super(view);
-            title = (TextView) view.findViewById(R.id.title);
-            progressBar = (ProgressBar) view.findViewById(R.id.progress);
-        }
+    @Override
+    public void onBindViewHolder(MyViewHolder holder, int position) {
+        IndividualExpenseModel individualExpenseModel = individualExpensesListModel.get(position);
+        holder.title.setText(individualExpenseModel.getTitle());
+        holder.progressBar.setProgress(individualExpenseModel.getProgress());
+        holder.amount.setText(String.valueOf(individualExpenseModel.getAmount()));
     }
 
 
@@ -44,11 +41,17 @@ public class IndividualExpenseAdapter extends RecyclerView.Adapter<IndividualExp
         return new MyViewHolder(itemView);
     }
 
-    @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
-        IndividualExpenseModel individualExpenseModel = individualExpensesListModel.get(position);
-        holder.title.setText(individualExpenseModel.getTitle());
-        holder.progressBar.setProgress(individualExpenseModel.getProgress());
+    public class MyViewHolder extends RecyclerView.ViewHolder {
+        public TextView title;
+        public ProgressBar progressBar;
+        public TextView amount;
+
+        public MyViewHolder(View view) {
+            super(view);
+            title = view.findViewById(R.id.title);
+            amount = view.findViewById(R.id.amount);
+            progressBar = view.findViewById(R.id.progress);
+        }
     }
 
     @Override

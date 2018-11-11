@@ -2,7 +2,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
@@ -20,7 +19,18 @@
         android:layout_alignParentTop="true"
         android:textColor="@color/title"
         android:textSize="16dp"
+        android:text="HII"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="15dp"
+        android:text="39.00"
+        android:textSize="@dimen/amountTextSize" />
+
 
     <ProgressBar
         android:id="@+id/progress"

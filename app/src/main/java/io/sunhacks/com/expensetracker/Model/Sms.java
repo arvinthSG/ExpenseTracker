@@ -1,4 +1,4 @@
-package io.sunhacks.com.expensetracker;
+package io.sunhacks.com.expensetracker.Model;
 
 import java.io.Serializable;
 

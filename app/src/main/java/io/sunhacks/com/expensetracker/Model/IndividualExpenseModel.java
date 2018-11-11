@@ -9,6 +9,7 @@ import java.io.Serializable;
 public class IndividualExpenseModel implements Serializable{
     private String title;
     private Integer progress;
+    private Float amount = 0.0f;
 
     public IndividualExpenseModel() {
     }
@@ -16,6 +17,14 @@ public class IndividualExpenseModel implements Serializable{
     public IndividualExpenseModel(String title, Integer progress) {
         this.title = title;
         this.progress = progress;
+    }
+
+    public Float getAmount() {
+        return this.amount;
+    }
+
+    public void addAmount(Float f) {
+        this.amount += f;
     }
 
     public String getTitle() {

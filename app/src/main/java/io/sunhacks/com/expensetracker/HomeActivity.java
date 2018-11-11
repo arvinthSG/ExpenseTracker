@@ -33,6 +33,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.sunhacks.com.expensetracker.Model.Sms;
+import io.sunhacks.com.expensetracker.Model.SpendingModel;
+
 public class HomeActivity extends AppCompatActivity {
 
 
@@ -136,9 +139,9 @@ public class HomeActivity extends AppCompatActivity {
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
 
-//         Intent intent = new Intent(this, ChartingActivity.class);
-//         intent.putExtra("parsed_list", parsedList);
-//         startActivity(intent);
+        Intent intent = new Intent(this, ChartingActivity.class);
+        intent.putExtra("parsed_list", parsedList);
+        startActivity(intent);
     }
 
     public String getCategory(String needle) {
@@ -256,7 +259,6 @@ public class HomeActivity extends AppCompatActivity {
         Matcher matcher = pattern.matcher(smsString);
 
         while (matcher.find()) {
-//            d = Double.parseDouble(matcher.group(1));
             d = Float.parseFloat(matcher.group(1));
             Log.d(LOG_TAG, matcher.group(1));
         }

@@ -9,7 +9,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Vector;
+
+import io.sunhacks.com.expensetracker.Model.SpendingModel;
 
 public class CSVWriter {
 

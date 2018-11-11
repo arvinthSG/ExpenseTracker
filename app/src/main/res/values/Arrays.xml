@@ -3,10 +3,11 @@
     <string-array name="transportation" translatable="false">
         <item>BIRD</item>
         <item>ENTERPRISE</item>
-        <item>LIMEBIKE</item>>
+        <item>LIMEBIKE</item>
         <item>LYFT</item>
         <item>PEORIA</item>
         <item>UBER</item>
+        <item>LIME</item>
         <item>SPIRIT</item>
     </string-array>
     <string-array name="food" translatable="false">
@@ -25,6 +26,7 @@
         <item>HUNGRY HOWIES</item>
         <item>BURGER KING</item>
         <item>TACO BELL</item>
+        <item>IHOP</item>
     </string-array>
     <string-array name="online" translatable="false">
         <item>Spotify</item>
@@ -40,5 +42,7 @@
         <item>Lotus Market</item>
         <item>Wal-Mart</item>
         <item>FOOD CITY</item>
+        <item>SAFEWAY</item>
+        <item>WalMart</item>
     </string-array>
 </resources>

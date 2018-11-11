@@ -2,11 +2,9 @@ package io.sunhacks.com.expensetracker;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Description;
@@ -23,9 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import io.sunhacks.com.expensetracker.Model.IndividualExpenseModel;
+import io.sunhacks.com.expensetracker.Model.SpendingModel;
 
 public class ChartingActivity extends AppCompatActivity {
 
@@ -33,10 +31,7 @@ public class ChartingActivity extends AppCompatActivity {
     public ArrayList<SpendingModel> parsedMessageList = null;
     public Float[] yData = null;
     public String[] xData = null;
-    public ArrayList<IndividualExpenseModel> individualData = new ArrayList<>();
     private Map<String, Float> individualDataMap = null;
-
-    private Map<String, Float> eachSpendingModel = null;
     PieChart pieChart;
 
     @Override
@@ -44,18 +39,20 @@ public class ChartingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_charting);
         Log.d(TAG, "onCreate: Creating the Pie chart");
-        eachSpendingModel = new HashMap<>();
+        Map<String, Float> eachSpendingModel = new HashMap<>();
         parsedMessageList = (ArrayList<SpendingModel>) getIntent().getSerializableExtra("parsed_list");
+
         for (SpendingModel spendingModel: parsedMessageList) {
             if(spendingModel.isDebit()) {
                 eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
             }
         }
+
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);
         yData = eachSpendingModel.values().toArray( new Float[0]);
 
-        pieChart = (PieChart) findViewById(R.id.piechart);
+        pieChart = findViewById(R.id.piechart);
         Description description = new Description();
         description.setText("Expenses by percentage");
         description.setTextSize(20);
@@ -71,10 +68,7 @@ public class ChartingActivity extends AppCompatActivity {
         pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                Log.d(TAG, "onValueSelected: Value select from chart.");
-                Log.d(TAG, "onValueSelected: " + e.toString());
-                Log.d(TAG, "onValueSelected: " + h.toString());
-
+                ArrayList<IndividualExpenseModel> individualData = new ArrayList<>();
                 int pos1 = 0;
                 float sales = h.getY();
                 individualDataMap = new HashMap<>();
@@ -86,20 +80,23 @@ public class ChartingActivity extends AppCompatActivity {
                     }
                 }
                 String data = xData[pos1];
+
                 for (SpendingModel spendingModel: parsedMessageList) {
-                    if(spendingModel.getCategory().equals(data)) {
-                        individualDataMap.put(spendingModel.getMerchant(), eachSpendingModel.getOrDefault(spendingModel.getMerchant(), 0.0f) + spendingModel.getAmount());
+                    if (spendingModel.getCategory().equals(data)) {
+                        individualDataMap.put(spendingModel.getMerchant(), individualDataMap.getOrDefault(spendingModel.getMerchant(), 0.0f) + spendingModel.getAmount());
                     }
                 }
 
-                for (Map.Entry each : individualDataMap.entrySet()) {
-                    individualData.add(new IndividualExpenseModel(String.valueOf(each.getKey()), getProgress((float) each.getValue(), sales)));
+                for (Map.Entry<String, Float> each : individualDataMap.entrySet()) {
+                    IndividualExpenseModel iem = new IndividualExpenseModel(each.getKey(), getProgress(each.getValue(), sales));
+                    iem.addAmount(each.getValue());
+                    individualData.add(iem);
                 }
+
                 Intent intent = new Intent(ChartingActivity.this, IndividualExpense.class);
                 intent.putExtra("individual_expense_list", individualData);
                 intent.putExtra("total_expense", String.valueOf(sales));
                 startActivity(intent);
-
             }
 
             @Override
