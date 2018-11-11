@@ -39,4 +39,5 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0-alpha'
     implementation 'io.realm:android-adapters:2.1.1'
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
+    implementation 'com.android.support:design:27.1.1'
 }

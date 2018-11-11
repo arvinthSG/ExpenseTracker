@@ -7,12 +7,12 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".ExpenseTrackerApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:name=".ExpenseTrackerApplication"
         android:theme="@style/AppTheme">
         <activity android:name=".HomeActivity">
             <intent-filter>
@@ -22,7 +22,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ChartingActivity" />
-        <activity android:name=".IndividualExpense"></activity>
+        <activity android:name=".IndividualExpense" />
+        <activity android:name=".SettingsActivity"></activity>
     </application>
 
 </manifest>

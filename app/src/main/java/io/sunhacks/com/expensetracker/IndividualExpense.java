@@ -2,11 +2,13 @@ package io.sunhacks.com.expensetracker;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import java.util.Collections;
@@ -44,5 +46,4 @@ public class IndividualExpense extends AppCompatActivity {
         individualExpenseAdapter.notifyDataSetChanged();
 
     }
-
 }

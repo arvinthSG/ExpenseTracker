@@ -3,6 +3,7 @@ package io.sunhacks.com.expensetracker;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -19,6 +20,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -424,6 +428,26 @@ public class HomeActivity extends AppCompatActivity {
         Log.i(LOG_TAG, "getAndFilterAllMsgs() End " + parsedList.size());
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.help_btn:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case R.id.exit:
+                finish();
+                break;
+        }
+        return true;
+    }
+
     public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
         private List<SpendingModel> messageList;
         private Context mContext;
@@ -502,5 +526,11 @@ public class HomeActivity extends AppCompatActivity {
                 ivCategoryIcon = itemView.findViewById(R.id.iv_category);
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }
