@@ -3,6 +3,7 @@ package io.sunhacks.com.expensetracker;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -43,7 +44,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private CSVWriter csvWriter = null;
     private List messages = null;
-    private List parsedList = null;
+    private ArrayList<SpendingModel> parsedList = null;
     private Map<String, String> numberAccountMap = null;
     private static final String EXPORT_FILE_NAME = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "message_data1.csv";
     private static final String CSV_HEADER = "Amount,Merchant,Category,Account,Time";
@@ -134,6 +135,10 @@ public class HomeActivity extends AppCompatActivity {
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
+
+         Intent intent = new Intent(this, ChartingActivity.class);
+         intent.putExtra("parsed_list", parsedList);
+         startActivity(intent);
     }
 
     public String getCategory(String needle) {
@@ -230,8 +235,8 @@ public class HomeActivity extends AppCompatActivity {
         return merchant;
     }
 
-    public Double parseAmount(String smsString, String account) {
-        Double d = 0.0;
+    public float parseAmount(String smsString, String account) {
+        float d = 0.0f;
         Pattern pattern;
         switch (account) {
             case Constants.DISCOVER:
@@ -251,15 +256,16 @@ public class HomeActivity extends AppCompatActivity {
         Matcher matcher = pattern.matcher(smsString);
 
         while (matcher.find()) {
-            d = Double.parseDouble(matcher.group(1));
+//            d = Double.parseDouble(matcher.group(1));
+            d = Float.parseFloat(matcher.group(1));
             Log.d(LOG_TAG, matcher.group(1));
         }
         return d;
     }
 
-    public List<SpendingModel> parseSms(List<Sms> messages) {
+    public ArrayList<SpendingModel> parseSms(List<Sms> messages) {
 
-        List<SpendingModel> parsedList = new ArrayList<>();
+        ArrayList<SpendingModel> parsedList = new ArrayList<>();
         for (Sms message : messages) {
             SpendingModel spendingModel = new SpendingModel();
             spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
@@ -324,7 +330,7 @@ public class HomeActivity extends AppCompatActivity {
         private List messageList;
         private Context mContext;
 
-        MessageAdapter(List<String> messages, Context context) {
+        MessageAdapter(List<SpendingModel> messages, Context context) {
             messageList = messages;
             mContext = context;
         }

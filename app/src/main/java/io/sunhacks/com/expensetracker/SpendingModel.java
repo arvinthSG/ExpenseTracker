@@ -1,15 +1,16 @@
 
 package io.sunhacks.com.expensetracker;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import io.sunhacks.com.expensetracker.Sms;
 
 
-public class SpendingModel {
+public class SpendingModel implements Serializable {
 
     // Amount that was spent
-    private double _amount;
+    private float _amount;
     // Where did I spend my Money!!?
     private String _merchant;
     // Well, what kind of place is that?
@@ -35,11 +36,11 @@ public class SpendingModel {
         this._smsTime = _smsTime;
     }
 
-    public double getAmount() {
+    public float getAmount() {
         return _amount;
     }
 
-    public void setAmount(double _amount) {
+    public void setAmount(float _amount) {
         this._amount = _amount;
     }
 

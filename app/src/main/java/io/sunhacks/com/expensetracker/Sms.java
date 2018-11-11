@@ -1,6 +1,8 @@
 package io.sunhacks.com.expensetracker;
 
-public class Sms {
+import java.io.Serializable;
+
+public class Sms implements Serializable{
     private String _id;
     private String _address;
     private String _msg;
