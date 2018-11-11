@@ -5,14 +5,14 @@ import io.realm.annotations.PrimaryKey;
 
 public class BudgetModel extends RealmObject {
     @PrimaryKey
-    private String key;
-    private float value;
+    public String key;
+    public Float value;
 
     public BudgetModel() {
 
     }
 
-    public void BudgetModel(String key, float object) {
+    public BudgetModel(String key, Float object) {
         this.key = key;
         this.value = object;
     }
