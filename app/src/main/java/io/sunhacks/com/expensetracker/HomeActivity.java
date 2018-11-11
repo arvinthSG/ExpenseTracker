@@ -136,9 +136,9 @@ public class HomeActivity extends AppCompatActivity {
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
 
-         Intent intent = new Intent(this, ChartingActivity.class);
-         intent.putExtra("parsed_list", parsedList);
-         startActivity(intent);
+//         Intent intent = new Intent(this, ChartingActivity.class);
+//         intent.putExtra("parsed_list", parsedList);
+//         startActivity(intent);
     }
 
     public String getCategory(String needle) {

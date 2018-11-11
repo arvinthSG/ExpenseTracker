@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+
+import io.sunhacks.com.expensetracker.Model.IndividualExpenseModel;
 
 public class ChartingActivity extends AppCompatActivity {
 
@@ -30,9 +33,8 @@ public class ChartingActivity extends AppCompatActivity {
     public ArrayList<SpendingModel> parsedMessageList = null;
     public Float[] yData = null;
     public String[] xData = null;
-
-    public String[] TransportCategories = {"Uber", "Lyft", "Lime", "Bird", "Razer"};
-    public float[] TransportData = {100.32f, 50.9f, 120.3f, 30.3f, 20.6f};
+    public ArrayList<IndividualExpenseModel> individualData = new ArrayList<>();
+    private Map<String, Float> individualDataMap = null;
 
     private Map<String, Float> eachSpendingModel = null;
     PieChart pieChart;
@@ -45,7 +47,9 @@ public class ChartingActivity extends AppCompatActivity {
         eachSpendingModel = new HashMap<>();
         parsedMessageList = (ArrayList<SpendingModel>) getIntent().getSerializableExtra("parsed_list");
         for (SpendingModel spendingModel: parsedMessageList) {
-            eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
+            if(spendingModel.isDebit()) {
+                eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
+            }
         }
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);
@@ -73,6 +77,7 @@ public class ChartingActivity extends AppCompatActivity {
 
                 int pos1 = 0;
                 float sales = h.getY();
+                individualDataMap = new HashMap<>();
 
                 for (int i = 0; i < yData.length; i++) {
                     if (yData[i] == sales) {
@@ -81,7 +86,19 @@ public class ChartingActivity extends AppCompatActivity {
                     }
                 }
                 String data = xData[pos1];
+                for (SpendingModel spendingModel: parsedMessageList) {
+                    if(spendingModel.getCategory().equals(data)) {
+                        individualDataMap.put(spendingModel.getMerchant(), eachSpendingModel.getOrDefault(spendingModel.getMerchant(), 0.0f) + spendingModel.getAmount());
+                    }
+                }
 
+                for (Map.Entry each : individualDataMap.entrySet()) {
+                    individualData.add(new IndividualExpenseModel(String.valueOf(each.getKey()), getProgress((float) each.getValue(), sales)));
+                }
+                Intent intent = new Intent(ChartingActivity.this, IndividualExpense.class);
+                intent.putExtra("individual_expense_list", individualData);
+                intent.putExtra("total_expense", String.valueOf(sales));
+                startActivity(intent);
 
             }
 
@@ -91,6 +108,10 @@ public class ChartingActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private Integer getProgress(float amount, float sales) {
+        return  (int)((amount / sales) * 100);
     }
 
     private void addDataSet() {

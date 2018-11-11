@@ -1,5 +1,6 @@
 package io.sunhacks.com.expensetracker;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -29,7 +30,7 @@ import io.sunhacks.com.expensetracker.Model.IndividualExpenseModel;
 
 public class IndividualExpense extends AppCompatActivity {
 
-    private List<IndividualExpenseModel> individualExpenseList = new ArrayList<>();
+    private List<IndividualExpenseModel> individualExpenseList = null;
     private RecyclerView recyclerView;
     private IndividualExpenseAdapter individualExpenseAdapter;
 
@@ -38,10 +39,12 @@ public class IndividualExpense extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_individual_expense);
-
+        Intent intent = getIntent();
+        individualExpenseList = (List<IndividualExpenseModel>) intent.getSerializableExtra("individual_expense_list");
+        Collections.sort(individualExpenseList, new SortbyProgress());
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         TextView textTotalExpense = (TextView) findViewById(R.id.totalExpenseDollars);
-        textTotalExpense.setText("$ 400");
+        textTotalExpense.setText("$ " + intent.getStringExtra("total_expense"));
 
         individualExpenseAdapter = new IndividualExpenseAdapter(individualExpenseList);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -49,28 +52,8 @@ public class IndividualExpense extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(individualExpenseAdapter);
-        prepareIndividualExpensesData();
-
-    }
-    private void prepareIndividualExpensesData() {
-        IndividualExpenseModel expense = new IndividualExpenseModel("Mad Max: Fury Road", 25);
-        individualExpenseList.add(expense);
-
-        expense = new IndividualExpenseModel("Inside Out", 45);
-        individualExpenseList.add(expense);
-
-        expense = new IndividualExpenseModel("Star Wars: Episode VII - The Force Awakens",20);
-        individualExpenseList.add(expense);
-
-        expense = new IndividualExpenseModel("Shaun the Sheep", 15);
-        individualExpenseList.add(expense);
-
-        expense = new IndividualExpenseModel("The Martian", 10);
-        individualExpenseList.add(expense);
-
-        Collections.sort(individualExpenseList, new SortbyProgress());
-
         individualExpenseAdapter.notifyDataSetChanged();
+
     }
 }
 

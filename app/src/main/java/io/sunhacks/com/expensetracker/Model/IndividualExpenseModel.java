@@ -1,10 +1,12 @@
 package io.sunhacks.com.expensetracker.Model;
 
+import java.io.Serializable;
+
 /**
  * Created by avinash on 10/11/18.
  */
 
-public class IndividualExpenseModel {
+public class IndividualExpenseModel implements Serializable{
     private String title;
     private Integer progress;
 
