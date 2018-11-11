@@ -32,7 +32,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
 
@@ -52,6 +51,7 @@ import java.util.regex.Pattern;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
+import io.sunhacks.com.expensetracker.Model.BudgetModel;
 import io.sunhacks.com.expensetracker.Model.Sms;
 import io.sunhacks.com.expensetracker.Model.SpendingModel;
 
@@ -69,7 +69,6 @@ public class HomeActivity extends AppCompatActivity {
     private Spinner spMonth = null;
 
     private double dNetSpending = 0;
-    private CSVWriter csvWriter = null;
     private List messages = null;
     private ArrayList<SpendingModel> parsedList = null;
     private Map<String, String> numberAccountMap = null;
@@ -90,20 +89,23 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public void getDataForMonth(String month) {
+        dNetSpending = 0;
+        spendings = 0.0f;
+        netValue = 0.0f;
         if (parsedList != null)
             parsedList.clear();
         // Horrible hack to conver MMM to MM.
-        String strdate = "22-" + month;
-        SimpleDateFormat olddateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+        Log.e("HIII", month);
+        SimpleDateFormat olddateFormat = new SimpleDateFormat("MMM-yyyy");
         Date d = null;
         try {
-            d = olddateFormat.parse(strdate);
+            d = olddateFormat.parse(month);
         } catch (ParseException e) {
             e.printStackTrace();
         }
         DateFormat dateFormat = new SimpleDateFormat("MM-YYYY", Locale.ENGLISH);
         String monthYear = dateFormat.format(d);
-        Log.d("MonthYear", monthYear);
+        Log.e("HIII", monthYear);
         RealmResults<SpendingModel> realmResults = realm.where(SpendingModel.class)
                 .sort("_monthYear")
                 .equalTo("_monthYear", monthYear)
@@ -117,7 +119,26 @@ public class HomeActivity extends AppCompatActivity {
                 netValue += spendingModel.getAmount();
             }
         }
-        Log.d("NetValue", String.format("%.2f", netValue));
+        Log.e("HIII", String.format("%.2f", netValue));
+        Log.e("HIII", parsedList.size() + "");
+        if (rvAdapter != null) {
+            rvAdapter.notifyDataSetChanged();
+        }
+        updateBudgetSpinner();
+    }
+
+    public void updateBudgetSpinner() {
+        BudgetModel model = realm.where(BudgetModel.class).equalTo("key", "Monthly").findFirst();
+        Float budget = 0.0f;
+        if (model == null) {
+            dNetSpending = spendings;
+            budget = spendings;
+        } else {
+            dNetSpending = model.value - spendings;
+            budget = model.value;
+        }
+        dnProgress.setText(String.format(Locale.US, "$%.2f", dNetSpending));
+        dnProgress.setProgress(getBudgetUtilization(budget));
     }
 
     public void initMerchantCategoryMap() {
@@ -193,6 +214,7 @@ public class HomeActivity extends AppCompatActivity {
         if (parsedList != null && parsedList.size() > 0) {
             showChart();
         }
+        updateBudgetSpinner();
     }
 
     private void showChart() {
@@ -352,7 +374,6 @@ public class HomeActivity extends AppCompatActivity {
             spendingModel.setSmsTime(d);
             spendingModel.setDebit(checkIsDebit(strMsg, spendingModel.getAccount()));
             if (spendingModel.isDebit()) {
-                amount = amount;
                 spendingModel.setCategory(getCategory(spendingModel.getMerchant()));
             } else {
                 spendingModel.setCategory("Income");
@@ -360,12 +381,7 @@ public class HomeActivity extends AppCompatActivity {
             totalAmount += amount;
             spendingModel.setAmount(amount);
             Date currentTime = Calendar.getInstance().getTime();
-            String currentDate = dateFormat.format(currentTime);
-          /*
-            if (currentDate.equalsIgnoreCase(spendingModel.getMonthYear())) {
-                parsedList.add(spendingModel);
-            }
-           */
+
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
@@ -382,10 +398,6 @@ public class HomeActivity extends AppCompatActivity {
             }
 
         }
-        dNetSpending = totalAmount;
-        Log.d("Years", "Max:" + maxMonth + " Min:" + minMonth);
-        dnProgress.setText(String.format("$%.2f", dNetSpending));
-        getDataForMonth("NOV");
     }
 
     public void getPermission() {
@@ -433,11 +445,9 @@ public class HomeActivity extends AppCompatActivity {
         allMessages = getAllMessages();
         messages = filterSms(allMessages);
         parseSms(messages);
-        if (chartingActivity != null) {
-            chartingActivity.update(parsedList);
-        }
-        parsed = true;
+        getDataForMonth("Nov-2018");
         showSpinner();
+        parsed = true;
         Log.i(LOG_TAG, "getAndFilterAllMsgs() End " + parsedList.size());
     }
 
@@ -465,9 +475,8 @@ public class HomeActivity extends AppCompatActivity {
         int month;
         StringBuilder monthString = new StringBuilder();
         List l = new ArrayList();
-        for (int i = startingMonthNumber; i <= endingMonthNumber; i++) {
-//            month = i % 12;
-            month = (i % 12) - 1;
+        for (int i = endingMonthNumber; i >= startingMonthNumber; i--) {
+            month = (i % 12);
             if (month < 10) {
                 monthString.append("0");
             }
@@ -482,46 +491,58 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private String getMonthString(int year, int month) {
-        Date date = new Date(year, month, 1);
-        String formattedDate = (String) android.text.format.DateFormat.format("MMM-yy", date);
-        Log.i(LOG_TAG, "dates " + formattedDate);
-        return formattedDate;
+        month = month + 1;
+        String str = month + "-" + year;
+        DateFormat olddateFormat = new SimpleDateFormat("MM-yyyy", Locale.US);
+        try {
+            Date date = olddateFormat.parse(str);
+            Log.e("YAAAAA", str);
+            DateFormat newDateFormat = new SimpleDateFormat("MMM-yyyy", Locale.US);
+
+            String formattedDate = newDateFormat.format(date);
+            Log.i(LOG_TAG, "dates " + formattedDate);
+            return formattedDate;
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private void showSpinner() {
 
         List<String> list;
-
-        String[] startMonth = minMonth.split("-");
-        int month = Integer.parseInt(startMonth[0]);
-        int year = Integer.parseInt(startMonth[1]);
-
         Date[] range = new Date[2];
-        range[0] = new Date(year, month, 1);
+        try {
+            DateFormat dateFormat = new SimpleDateFormat("MM-yyyy", Locale.US);
+            range[0] = dateFormat.parse(minMonth);
+            range[1] = dateFormat.parse(maxMonth);
+            list = getMonth(range);
 
-        String[] endMonth = maxMonth.split("-");
-        month = Integer.parseInt(endMonth[0]);
-        year = Integer.parseInt(endMonth[1]);
-        range[1] = new Date(year, month, 1);
-        list = getMonth(range);
+            if (list != null && list.size() > 0) {
+                ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+                        android.R.layout.simple_spinner_item, list);
+                dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spMonth.setAdapter(dataAdapter);
+            }
+            spMonth.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    Log.e("HIII", "HEEEE");
+                    getDataForMonth(adapterView.getItemAtPosition(i).toString());
+                    if (chartingActivity == null) {
+                        ChartingActivity.newInstance(parsedList);
+                    } else {
+                        chartingActivity.update(parsedList);
+                    }
+                }
 
-        if (list != null && list.size() > 0) {
-            ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
-                    android.R.layout.simple_spinner_item, list);
-            dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spMonth.setAdapter(dataAdapter);
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                    getDataForMonth("NOV-2018");
+                }
+            });
+        } catch (Exception e) {
+
         }
-        spMonth.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                adapterView.getItemAtPosition(i).toString();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
     }
 
     @Override

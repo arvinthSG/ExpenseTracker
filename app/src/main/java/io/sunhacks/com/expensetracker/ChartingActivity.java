@@ -66,15 +66,14 @@ public class ChartingActivity extends Fragment {
 
     public void update(ArrayList<SpendingModel> parsedMessageList) {
         Log.i(TAG, "update() " + parsedMessageList.size());
-        if (!calculationDone) {
+        //      if (!calculationDone) {
             for (SpendingModel spendingModel : parsedMessageList) {
                 if (spendingModel.isDebit()) {
                     eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
                 }
                 calculationDone = true;
             }
-        }
-
+        //    }
 
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);
@@ -89,14 +88,14 @@ public class ChartingActivity extends Fragment {
 
         eachSpendingModel = new HashMap<>();
         parsedMessageList = (ArrayList<SpendingModel>) getArguments().getSerializable("PARSED_LIST");
-        if (!calculationDone) {
+//        if (!calculationDone) {
             for (SpendingModel spendingModel : parsedMessageList) {
                 if (spendingModel.isDebit()) {
                     eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
                 }
                 calculationDone = true;
             }
-        }
+        //      }
 
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);

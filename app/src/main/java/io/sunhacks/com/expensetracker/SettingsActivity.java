@@ -36,30 +36,22 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void execute(Realm realm) {
                 BudgetModel superMarketModel = realm.where(BudgetModel.class).equalTo("key", "SuperMarket").findFirst();
-                if (superMarketModel == null) {
-                    realm.copyToRealm(new BudgetModel("SuperMarket", Float.parseFloat(etShoppingLimit.getText().toString())));
-                } else {
+                if (superMarketModel != null) {
                     etSuperMarketLimit.setText(String.format(Locale.US, "%.2f", superMarketModel.value));
                 }
 
                 BudgetModel monthlyModel = realm.where(BudgetModel.class).equalTo("key", "Monthly").findFirst();
-                if (monthlyModel == null) {
-                    realm.copyToRealm(new BudgetModel("Monthly", Float.parseFloat(etMonthlyLimit.getText().toString())));
-                } else {
+                if (monthlyModel != null) {
                     etMonthlyLimit.setText(String.format(Locale.US, "%.2f", monthlyModel.value));
                 }
 
-                BudgetModel transportationModel = realm.where(BudgetModel.class).equalTo("key", "Transportation").findFirst();
-                if (transportationModel == null) {
-                    realm.copyToRealm(new BudgetModel("Transportation", Float.parseFloat(etTransportationLimit.getText().toString())));
-                } else {
+                BudgetModel transportationModel = realm.where(BudgetModel.class).equalTo("key", "Transport").findFirst();
+                if (transportationModel != null) {
                     etTransportationLimit.setText(String.format(Locale.US, "%.2f", transportationModel.value));
                 }
 
                 BudgetModel shoppingModel = realm.where(BudgetModel.class).equalTo("key", "Shopping").findFirst();
-                if (shoppingModel == null) {
-                    realm.copyToRealm(new BudgetModel("Shopping", Float.parseFloat(etShoppingLimit.getText().toString())));
-                } else {
+                if (shoppingModel != null) {
                     etShoppingLimit.setText(String.format(Locale.US, "%.2f", shoppingModel.value));
                 }
             }
@@ -74,18 +66,29 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Float shoppingLimit = Float.parseFloat(etShoppingLimit.getText().toString());
-        Float monthlyLimit = Float.parseFloat(etMonthlyLimit.getText().toString());
-        Float transportLimit = Float.parseFloat(etTransportationLimit.getText().toString());
-        Float superMarketLimit = Float.parseFloat(etSuperMarketLimit.getText().toString());
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.copyToRealm(new BudgetModel("Shopping", shoppingLimit));
-                realm.copyToRealm(new BudgetModel("Monthly", monthlyLimit));
-                realm.copyToRealm(new BudgetModel("Transport", transportLimit));
-                realm.copyToRealm(new BudgetModel("SuperMarket", superMarketLimit));
+                Float shoppingLimit = 0.0f, monthlyLimit = 0.0f, transportLimit = 0.0f, superMarketLimit = 0.0f;
+
+                if (!etShoppingLimit.getText().toString().equals("")) {
+                    shoppingLimit = Float.parseFloat(etShoppingLimit.getText().toString());
+                }
+                if (!etMonthlyLimit.getText().toString().equals("")) {
+                    monthlyLimit = Float.parseFloat(etMonthlyLimit.getText().toString());
+                }
+                if (!etTransportationLimit.getText().toString().equals("")) {
+                    transportLimit = Float.parseFloat(etTransportationLimit.getText().toString());
+                }
+                if (!etSuperMarketLimit.getText().toString().equals("")) {
+                    superMarketLimit = Float.parseFloat(etSuperMarketLimit.getText().toString());
+                }
+
+                realm.copyToRealmOrUpdate(new BudgetModel("Shopping", shoppingLimit));
+                realm.copyToRealmOrUpdate(new BudgetModel("Monthly", monthlyLimit));
+                realm.copyToRealmOrUpdate(new BudgetModel("Transport", transportLimit));
+                realm.copyToRealmOrUpdate(new BudgetModel("SuperMarket", superMarketLimit));
             }
         });
 
