@@ -78,6 +78,12 @@ public class HomeActivity extends AppCompatActivity {
     String minMonth = "12-2222";
     String maxMonth = "01-1970";
     float netValue = 0.0f;
+    float spendings = 0.0f;
+
+    public float getBudgetUtilization(float budget) {
+        return ((spendings / budget) * 100);
+    }
+
     public void getDataForMonth(String month) {
         if (parsedList != null)
             parsedList.clear();
@@ -102,11 +108,12 @@ public class HomeActivity extends AppCompatActivity {
             parsedList.add(realm.copyFromRealm(spendingModel));
             if (spendingModel.isDebit()) {
                 netValue -= spendingModel.getAmount();
+                spendings += spendingModel.getAmount();
             } else {
                 netValue += spendingModel.getAmount();
             }
         }
-        Log.e("NetValue", String.format("%.2f", netValue));
+        Log.d("NetValue", String.format("%.2f", netValue));
     }
 
     public void initMerchantCategoryMap() {
