@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">ExpenseTracker</string>
     <string name="total_expenses">Total Expenses</string>
+    <string name="TransactionsTitle">Transaction</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

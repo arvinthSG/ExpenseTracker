@@ -3,14 +3,15 @@ package io.sunhacks.com.expensetracker;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,7 +21,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.github.lzyzsd.circleprogress.DonutProgress;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +56,12 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView rvMessagesList = null;
     private MessageAdapter rvAdapter = null;
     private Button btnExport = null;
+    private DonutProgress dnProgress = null;
+    private FrameLayout flCharts = null;
+    private ChartingActivity chartingActivity = null;
+    private PieChart pieChart = null;
 
+    private double dNetSpending = 0;
     private CSVWriter csvWriter = null;
     private List messages = null;
     private ArrayList<SpendingModel> parsedList = null;
@@ -49,7 +69,10 @@ public class HomeActivity extends AppCompatActivity {
     private static final String EXPORT_FILE_NAME = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "message_data1.csv";
     private static final String CSV_HEADER = "Amount,Merchant,Category,Account,Time";
     public Map<String, List<String>> merchantCategoryMap = null;
+    private Map<String, Float> eachSpendingModel = null;
     private static final String LOG_TAG = "EXPENSE_TRACKER";
+    private String[] xData;
+    private Float[] yData;
 
     public void initMerchantCategoryMap() {
         merchantCategoryMap = new HashMap<>();
@@ -73,6 +96,12 @@ public class HomeActivity extends AppCompatActivity {
         numberAccountMap = initializeMap();
         btnExport = findViewById(R.id.btn_export);
         initMerchantCategoryMap();
+
+
+        dnProgress = findViewById(R.id.donut_progress);
+        flCharts = findViewById(R.id.fl_charts);
+
+
         btnExport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -92,11 +121,6 @@ public class HomeActivity extends AppCompatActivity {
                 csvWriter.exportMessages(export_csv_File, parsedList, CSV_HEADER, ",");
             }
         });
-        // Intent intent = new Intent(this, ChartingActivity.class);
-        // startActivity(intent);
-
-//        Intent intent = new Intent(this, IndividualExpense.class);
-//        startActivity(intent);
     }
 
     public boolean checkIsDebit(String message, String account) {
@@ -117,35 +141,41 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d(LOG_TAG, "onResume()");
-        List<Sms> allMessages;
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
-                != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
             Log.i(LOG_TAG, "permission not granted");
             getPermission();
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_WRITE_STORAGE);
         } else {
-            allMessages = getAllMessages();
-            messages = filterSms(allMessages);
-            parsedList = parseSms(messages);
+            getANdFilterAllMsgs();
         }
         messages = new ArrayList();
         rvAdapter = new MessageAdapter(parsedList, this);
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
+        if (parsedList.size() > 0) {
+            showChart();
+        }
 
-//         Intent intent = new Intent(this, ChartingActivity.class);
-//         intent.putExtra("parsed_list", parsedList);
-//         startActivity(intent);
+    }
+
+    private void showChart() {
+        if (chartingActivity == null) {
+            chartingActivity = ChartingActivity.newInstance(parsedList);
+        }
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fl_charts, chartingActivity, "CHARTING_FRAGMENT");
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     public String getCategory(String needle) {
         // Iterate through the haystack map, and then get the key
         String retval = "Other";
         boolean entryFound = false;
-        Log.d(LOG_TAG, "getCategory");
+//        Log.d(LOG_TAG, "getCategory");
         for (Map.Entry<String, List<String>> eachCategory : merchantCategoryMap.entrySet()) {
             // Now, go through the entire list and see if we can recognize anything
             String key = eachCategory.getKey();
@@ -248,7 +278,7 @@ public class HomeActivity extends AppCompatActivity {
                 pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
                 break;
             default:
-                Log.d(LOG_TAG, smsString);
+//                Log.d(LOG_TAG, smsString);
                 pattern = Pattern.compile("sent you \\$(.*?)\\,", Pattern.MULTILINE);
                 break;
         }
@@ -258,36 +288,43 @@ public class HomeActivity extends AppCompatActivity {
         while (matcher.find()) {
 //            d = Double.parseDouble(matcher.group(1));
             d = Float.parseFloat(matcher.group(1));
-            Log.d(LOG_TAG, matcher.group(1));
+//            Log.d(LOG_TAG, matcher.group(1));
         }
         return d;
     }
 
     public ArrayList<SpendingModel> parseSms(List<Sms> messages) {
-
+        float totalAmount = 0;
         ArrayList<SpendingModel> parsedList = new ArrayList<>();
         for (Sms message : messages) {
             SpendingModel spendingModel = new SpendingModel();
             spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
             String strMsg = message.getMsg();
-            spendingModel.setAmount(parseAmount(strMsg, spendingModel.getAccount()));
-            if (spendingModel.getAmount() == 0) {
+            float amount = parseAmount(strMsg, spendingModel.getAccount());
+//            spendingModel.setAmount(parseAmount(strMsg, spendingModel.getAccount()));
+            if (amount == 0) {
                 // Mostly a auth message or something. skip it!.
                 continue;
             }
             spendingModel.setRawMessage(message);
             spendingModel.setMerchant(parseMerchant(strMsg, spendingModel.getAccount()));
-            Log.d("Time", message.getTime());
+//            Log.d("Time", message.getTime());
             Date d = new Date((long) Double.parseDouble(message.getTime()));
             spendingModel.setSmsTime(d);
             spendingModel.setDebit(checkIsDebit(strMsg, spendingModel.getAccount()));
             if (spendingModel.isDebit()) {
+                amount = amount;
                 spendingModel.setCategory(getCategory(spendingModel.getMerchant()));
             } else {
                 spendingModel.setCategory("Income");
             }
+            totalAmount += amount;
+            spendingModel.setAmount(amount);
             parsedList.add(spendingModel);
         }
+        dNetSpending = totalAmount;
+
+        dnProgress.setText(String.format("$%.2f", dNetSpending));
         return parsedList;
     }
 
@@ -316,7 +353,7 @@ public class HomeActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    messages = getAllMessages();
+                    getANdFilterAllMsgs();
                     rvAdapter.notifyDataSetChanged();
                 } else {
                     //SHow message to User
@@ -326,11 +363,23 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
+    public void getANdFilterAllMsgs() {
+        List<Sms> allMessages;
+        allMessages = getAllMessages();
+        messages = filterSms(allMessages);
+        parsedList = parseSms(messages);
+        if (chartingActivity != null) {
+            chartingActivity.update(parsedList);
+        }
+        showChart();
+        Log.i(LOG_TAG, "getAndFilterAllMsgs() End " + parsedList.size());
+    }
+
     public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
-        private List messageList;
+        private List<SpendingModel> messageList;
         private Context mContext;
 
-        MessageAdapter(List<SpendingModel> messages, Context context) {
+        public MessageAdapter(List<SpendingModel> messages, Context context) {
             messageList = messages;
             mContext = context;
         }
@@ -345,12 +394,11 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(MessageAdapter.ViewHolder holder, int position) {
             if (holder != null) {
-                SpendingModel newSms = (SpendingModel) messageList.get(position);
+                SpendingModel newSms = (SpendingModel) parsedList.get(position);
                 holder.tvMessageMerchant.setText(newSms.getMerchant());
                 String amount = String.valueOf(newSms.getAmount());
                 if (newSms.isDebit()) {
                     holder.tvMessageAmount.setTextColor(ContextCompat.getColor(mContext, R.color.amountDebitColor));
-                    amount = "- " + amount;
                 } else {
                     holder.tvMessageAmount.setTextColor(ContextCompat.getColor(mContext, R.color.amountCreditCOlor));
                 }
@@ -366,7 +414,7 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return messageList.size();
+            return parsedList.size();
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
