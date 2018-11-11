@@ -88,6 +88,7 @@ public class HomeActivity extends AppCompatActivity {
         return ((spendings / budget) * 100);
     }
 
+
     public void getDataForMonth(String month) {
         dNetSpending = 0;
         spendings = 0.0f;
@@ -377,6 +378,7 @@ public class HomeActivity extends AppCompatActivity {
                 spendingModel.setCategory(getCategory(spendingModel.getMerchant()));
             } else {
                 spendingModel.setCategory("Income");
+
             }
             totalAmount += amount;
             spendingModel.setAmount(amount);

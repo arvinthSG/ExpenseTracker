@@ -13,7 +13,7 @@ public class Constants {
         public static final String FOOD = "food";
         public static final String ONLINE = "online";
         public static final String APPAREL = "apparel";
-        public static final String TRANSPORTATION = "transportation";
+        public static final String TRANSPORTATION = "Transport";
     }
 }
 

@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">ExpenseTracker</string>
+    <string name="app_name">Wallytics</string>
     <string name="total_expenses">Total Expenses</string>
     <string name="TransactionsTitle">Transaction</string>
 
-    <string name="transportation">transportation</string>
+    <string name="transportation">Transport</string>
     <string name="food">food</string>
     <string name="online">online</string>
     <string name="apparel">apparel</string>

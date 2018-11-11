@@ -58,6 +58,32 @@
             android:nestedScrollingEnabled="false" />
 
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/rv_lists"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/tv_free_tip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="10dp"
+                android:text="Free Tip"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tv_tip1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tv_free_tip"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="10dp"
+                android:text="LIME usage per month can be avoided, if you buy a bike in 2 months"
+                android:textSize="18sp" />
+        </RelativeLayout>
+
         <Button
             android:id="@+id/btn_export"
             android:layout_width="wrap_content"
