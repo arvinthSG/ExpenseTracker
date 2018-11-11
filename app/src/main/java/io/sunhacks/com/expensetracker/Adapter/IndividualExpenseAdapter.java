@@ -26,7 +26,7 @@ public class IndividualExpenseAdapter extends RecyclerView.Adapter<IndividualExp
         IndividualExpenseModel individualExpenseModel = individualExpensesListModel.get(position);
         holder.title.setText(individualExpenseModel.getTitle());
         holder.progressBar.setProgress(individualExpenseModel.getProgress());
-        holder.amount.setText(String.format(Locale.ENGLISH, "%0.2f", String.valueOf(individualExpenseModel.getAmount())));
+        holder.amount.setText(String.format(Locale.ENGLISH, "%.2f", individualExpenseModel.getAmount()));
     }
 
 

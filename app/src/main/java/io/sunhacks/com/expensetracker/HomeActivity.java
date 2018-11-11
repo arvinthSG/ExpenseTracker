@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -24,20 +25,23 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
-import com.github.mikephil.charting.charts.PieChart;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.sunhacks.com.expensetracker.Model.Sms;
 import io.sunhacks.com.expensetracker.Model.SpendingModel;
 
@@ -62,6 +66,7 @@ public class HomeActivity extends AppCompatActivity {
     private static final String CSV_HEADER = "Amount,Merchant,Category,Account,Time";
     public Map<String, List<String>> merchantCategoryMap = null;
     private static final String LOG_TAG = "EXPENSE_TRACKER";
+    private Realm realm;
 
     public void initMerchantCategoryMap() {
         merchantCategoryMap = new HashMap<>();
@@ -90,6 +95,11 @@ public class HomeActivity extends AppCompatActivity {
         dnProgress = findViewById(R.id.donut_progress);
         flCharts = findViewById(R.id.fl_charts);
 
+
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .build();
+        realm = Realm.getInstance(config);
 
         btnExport.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -287,22 +297,23 @@ public class HomeActivity extends AppCompatActivity {
     public ArrayList<SpendingModel> parseSms(List<Sms> messages) {
         float totalAmount = 0;
         ArrayList<SpendingModel> parsedList = new ArrayList<>();
-        Realm realm = Realm.getDefaultInstance();
+
 
         for (Sms message : messages) {
             SpendingModel spendingModel = new SpendingModel();
             spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
             String strMsg = message.getMsg();
             float amount = parseAmount(strMsg, spendingModel.getAccount());
-//            spendingModel.setAmount(parseAmount(strMsg, spendingModel.getAccount()));
             if (amount == 0) {
                 // Mostly a auth message or something. skip it!.
                 continue;
             }
             spendingModel.setRawMessage(message);
             spendingModel.setMerchant(parseMerchant(strMsg, spendingModel.getAccount()));
-//            Log.d("Time", message.getTime());
             Date d = new Date((long) Double.parseDouble(message.getTime()));
+            DateFormat dateFormat = new SimpleDateFormat("MMMyyyy", Locale.ENGLISH);
+            spendingModel.setMonthYear(dateFormat.format(d));
+            Log.d("MonthYear", spendingModel.getMonthYear());
             spendingModel.setSmsTime(d);
             spendingModel.setDebit(checkIsDebit(strMsg, spendingModel.getAccount()));
             if (spendingModel.isDebit()) {
@@ -313,12 +324,17 @@ public class HomeActivity extends AppCompatActivity {
             }
             totalAmount += amount;
             spendingModel.setAmount(amount);
-            parsedList.add(spendingModel);
-
-            realm.beginTransaction();
-            final SpendingModel rspendingModel = realm.copyToRealm(spendingModel);
-            realm.insert(rspendingModel);
-            realm.commitTransaction();
+            Date currentTime = Calendar.getInstance().getTime();
+            String currentDate = dateFormat.format(currentTime);
+            if (currentDate.equalsIgnoreCase(spendingModel.getMonthYear())) {
+                parsedList.add(spendingModel);
+            }
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.copyToRealm(spendingModel);
+                }
+            });
         }
         dNetSpending = totalAmount;
 
@@ -406,7 +422,6 @@ public class HomeActivity extends AppCompatActivity {
                 smsDate.getDay();
                 String date = (String) android.text.format.DateFormat.format("MMM-dd", smsDate);
                 holder.tvMessageDate.setText(date);
-
             }
         }
 

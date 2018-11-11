@@ -20,12 +20,21 @@ public class SpendingModel extends RealmObject implements Serializable {
     // Raw message body just in case we mess up parsing.
     private Sms _rawMessage;
 
-
     //OMG. When did I spend so much?
     private Date _smsTime;
 
     //Hold on, did I spend this, or did someone give me money?
     private boolean _debit; // True = I spent, False = I got money!
+
+    private String _monthYear;
+
+    public String getMonthYear() {
+        return _monthYear;
+    }
+
+    public void setMonthYear(String monthYear) {
+        this._monthYear = monthYear;
+    }
 
 
     public Date getSmsTime() {

@@ -1,11 +1,9 @@
 package io.sunhacks.com.expensetracker;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -28,6 +26,7 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import io.sunhacks.com.expensetracker.Model.IndividualExpenseModel;
@@ -39,19 +38,10 @@ public class ChartingActivity extends Fragment {
     public ArrayList<SpendingModel> parsedMessageList = null;
     public Float[] yData = null;
     public String[] xData = null;
-
-
-    public String[] TransportCategories = {"Uber", "Lyft", "Lime", "Bird", "Razer"};
-    public float[] TransportData = {100.32f, 50.9f, 120.3f, 30.3f, 20.6f};
-
+    private boolean calculationDone = false;
     private Map<String, Float> eachSpendingModel = null;
     private Map<String, Float> individualDataMap = null;
     PieChart pieChart;
-    private iChartsCallBack callBack = null;
-
-    public interface iChartsCallBack {
-        void clickedItem();
-    }
 
     public static ChartingActivity newInstance(ArrayList<SpendingModel> parsedMessageList) {
         Bundle bundle = new Bundle();
@@ -72,17 +62,19 @@ public class ChartingActivity extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Activity act = getActivity();
-//        callBack = (iChartsCallBack) act;
     }
 
     public void update(ArrayList<SpendingModel> parsedMessageList) {
         Log.i(TAG, "update() " + parsedMessageList.size());
-        for (SpendingModel spendingModel : parsedMessageList) {
-            if (spendingModel.isDebit()) {
-                eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
+        if (!calculationDone) {
+            for (SpendingModel spendingModel : parsedMessageList) {
+                if (spendingModel.isDebit()) {
+                    eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
+                }
+                calculationDone = true;
             }
         }
+
 
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);
@@ -97,23 +89,27 @@ public class ChartingActivity extends Fragment {
 
         eachSpendingModel = new HashMap<>();
         parsedMessageList = (ArrayList<SpendingModel>) getArguments().getSerializable("PARSED_LIST");
-        for (SpendingModel spendingModel : parsedMessageList) {
-            if (spendingModel.isDebit()) {
-                eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
+        if (!calculationDone) {
+            for (SpendingModel spendingModel : parsedMessageList) {
+                if (spendingModel.isDebit()) {
+                    eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
+                }
+                calculationDone = true;
             }
         }
 
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);
         yData = eachSpendingModel.values().toArray(new Float[0]);
-        pieChart = (PieChart) view.findViewById(R.id.pc_mainpie);
+
+        pieChart = view.findViewById(R.id.pc_mainpie);
         Description description = new Description();
         description.setText("Expenses by percentage");
         description.setTextSize(20);
         pieChart.setDescription(description);
-        pieChart.setRotationEnabled(true);
+        pieChart.setRotationEnabled(false);
         pieChart.setUsePercentValues(true);
-        pieChart.setHoleRadius(20f);
+        pieChart.setHoleRadius(0f);
         pieChart.setTransparentCircleAlpha(1);
         pieChart.setDrawEntryLabels(true);
 
@@ -125,6 +121,7 @@ public class ChartingActivity extends Fragment {
                 ArrayList<IndividualExpenseModel> individualData = new ArrayList<>();
                 int pos1 = 0;
                 float sales = h.getY();
+                PieEntry pe = (PieEntry) e;
                 individualDataMap = new HashMap<>();
 
                 for (int i = 0; i < yData.length; i++) {
@@ -148,7 +145,7 @@ public class ChartingActivity extends Fragment {
 
                 Intent intent = new Intent(getContext(), IndividualExpense.class);
                 intent.putExtra("individual_expense_list", individualData);
-                intent.putExtra("total_expense", String.valueOf(sales));
+                intent.putExtra("total_expense", String.format(Locale.ENGLISH, "%.2f", sales));
                 startActivity(intent);
             }
 
