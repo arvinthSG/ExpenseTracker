@@ -104,12 +104,12 @@ public class ChartingActivity extends Fragment {
 
         pieChart = view.findViewById(R.id.pc_mainpie);
         Description description = new Description();
-        description.setText("Expenses by percentage");
-        description.setTextSize(20);
+        description.setText("Expenses");
+//        description.setTextSize(20);
         pieChart.setDescription(description);
-        pieChart.setRotationEnabled(false);
+        pieChart.setRotationEnabled(true);
         pieChart.setUsePercentValues(true);
-        pieChart.setHoleRadius(0f);
+        pieChart.setHoleRadius(2f);
         pieChart.setTransparentCircleAlpha(1);
         pieChart.setDrawEntryLabels(true);
 

@@ -9,4 +9,5 @@
     <color name="amountDebitColor">#D84315</color>
     <color name="amountCreditCOlor">#2E7D32</color>
     <color name="divider">#9a9a9a</color>
+    <color name="textColor">#363545</color>
 </resources>
