@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.icu.util.Calendar;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
@@ -66,6 +68,7 @@ public class HomeActivity extends AppCompatActivity {
     private static final String LOG_TAG = "EXPENSE_TRACKER";
     private Realm realm;
     public boolean parsed = false;
+
     public void initMerchantCategoryMap() {
         merchantCategoryMap = new HashMap<>();
         List<String> transportBusinesses = Arrays.asList(getResources().getStringArray(R.array.transportation));
@@ -373,7 +376,7 @@ public class HomeActivity extends AppCompatActivity {
                     } else {
                         showChart();
                     }
-                         
+
                     rvAdapter.notifyDataSetChanged();
                 } else {
                     //SHow message to User
@@ -406,7 +409,7 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         public MessageAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(mContext).inflate(R.layout.listview, null, false);
+            View view = LayoutInflater.from(mContext).inflate(R.layout.transaction_list_items, null, false);
             view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             return new ViewHolder(view);
         }
@@ -428,12 +431,33 @@ public class HomeActivity extends AppCompatActivity {
                 smsDate.getDay();
                 String date = (String) android.text.format.DateFormat.format("MMM-dd", smsDate);
                 holder.tvMessageDate.setText(date);
+                Drawable image;
+                Log.i(LOG_TAG, "category " + newSms.getCategory());
+                image = ContextCompat.getDrawable(mContext, R.drawable.defaultimg);
+                if (newSms.getCategory().equalsIgnoreCase(Constants.Category.SUPERMARKET)) {
+                    image = ContextCompat.getDrawable(mContext, R.drawable.supermarket);
+                } else if (newSms.getCategory().equalsIgnoreCase(Constants.Category.APPAREL)) {
+                    image = ContextCompat.getDrawable(mContext, R.drawable.apparel);
+                } else if (newSms.getCategory().equalsIgnoreCase(Constants.Category.FOOD)) {
+                    image = ContextCompat.getDrawable(mContext, R.drawable.food);
+                } else if (newSms.getCategory().equalsIgnoreCase(Constants.Category.TRANSPORTATION)) {
+                    image = ContextCompat.getDrawable(mContext, R.drawable.transportation);
+                } else if (newSms.getCategory().equalsIgnoreCase(Constants.Category.ONLINE)) {
+                    image = ContextCompat.getDrawable(mContext, R.drawable.apparel);
+                } else if (newSms.getCategory().equalsIgnoreCase("others")) {
+                    image = ContextCompat.getDrawable(mContext, R.drawable.defaultimg);
+                }
+                holder.ivCategoryIcon.setBackground(image);
             }
         }
 
         @Override
         public int getItemCount() {
-            return parsedList.size();
+            if (parsedList != null) {
+                return parsedList.size();
+            } else {
+                return 0;
+            }
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
@@ -441,6 +465,7 @@ public class HomeActivity extends AppCompatActivity {
             private TextView tvMessageAmount;
             private TextView tvMessageAccount;
             private TextView tvMessageDate;
+            private ImageView ivCategoryIcon;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -448,6 +473,7 @@ public class HomeActivity extends AppCompatActivity {
                 tvMessageAmount = itemView.findViewById(R.id.tv_msg_amount);
                 tvMessageAccount = itemView.findViewById(R.id.tv_msg_account_type);
                 tvMessageDate = itemView.findViewById(R.id.tv_msg_date);
+                ivCategoryIcon = itemView.findViewById(R.id.iv_category);
             }
         }
     }
