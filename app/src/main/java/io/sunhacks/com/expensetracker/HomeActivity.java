@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.realm.Realm;
 import io.sunhacks.com.expensetracker.Model.Sms;
 import io.sunhacks.com.expensetracker.Model.SpendingModel;
 
@@ -51,7 +52,6 @@ public class HomeActivity extends AppCompatActivity {
     private DonutProgress dnProgress = null;
     private FrameLayout flCharts = null;
     private ChartingActivity chartingActivity = null;
-    private PieChart pieChart = null;
 
     private double dNetSpending = 0;
     private CSVWriter csvWriter = null;
@@ -287,6 +287,8 @@ public class HomeActivity extends AppCompatActivity {
     public ArrayList<SpendingModel> parseSms(List<Sms> messages) {
         float totalAmount = 0;
         ArrayList<SpendingModel> parsedList = new ArrayList<>();
+        Realm realm = Realm.getDefaultInstance();
+
         for (Sms message : messages) {
             SpendingModel spendingModel = new SpendingModel();
             spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
@@ -312,6 +314,11 @@ public class HomeActivity extends AppCompatActivity {
             totalAmount += amount;
             spendingModel.setAmount(amount);
             parsedList.add(spendingModel);
+
+            realm.beginTransaction();
+            final SpendingModel rspendingModel = realm.copyToRealm(spendingModel);
+            realm.insert(rspendingModel);
+            realm.commitTransaction();
         }
         dNetSpending = totalAmount;
 
