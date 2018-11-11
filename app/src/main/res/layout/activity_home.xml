@@ -11,6 +11,15 @@
         android:layout_height="match_parent"
         android:background="@color/colorWhite">
 
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/spMonths"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:scaleX="1.2"
+            android:scaleY="1.2" />
+
         <FrameLayout
             android:id="@+id/fl_charts"
             android:layout_width="300dp"
@@ -35,6 +44,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/donut_progress"
+            android:layout_marginTop="10dp"
             android:text="@string/TransactionsTitle"
             android:textColor="@color/title"
             android:textSize="20sp" />
