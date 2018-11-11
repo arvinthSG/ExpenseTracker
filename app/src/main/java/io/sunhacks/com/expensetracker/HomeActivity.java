@@ -220,7 +220,7 @@ public class HomeActivity extends AppCompatActivity {
     private void showChart() {
 
         if (chartingActivity == null) {
-            chartingActivity = ChartingActivity.newInstance(parsedList);
+            chartingActivity = ChartingActivity.newInstance("Nov-2018");
         }
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fl_charts, chartingActivity, "CHARTING_FRAGMENT");
@@ -526,12 +526,11 @@ public class HomeActivity extends AppCompatActivity {
             spMonth.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    Log.e("HIII", "HEEEE");
                     getDataForMonth(adapterView.getItemAtPosition(i).toString());
                     if (chartingActivity == null) {
-                        ChartingActivity.newInstance(parsedList);
+                        ChartingActivity.newInstance(adapterView.getItemAtPosition(i).toString());
                     } else {
-                        chartingActivity.update(parsedList);
+                        chartingActivity.update(adapterView.getItemAtPosition(i).toString());
                     }
                 }
 

@@ -23,12 +23,19 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 import io.sunhacks.com.expensetracker.Model.IndividualExpenseModel;
 import io.sunhacks.com.expensetracker.Model.SpendingModel;
 
@@ -42,20 +49,33 @@ public class ChartingActivity extends Fragment {
     private Map<String, Float> eachSpendingModel = null;
     private Map<String, Float> individualDataMap = null;
     PieChart pieChart;
+    Realm realm;
 
-    public static ChartingActivity newInstance(ArrayList<SpendingModel> parsedMessageList) {
+    public static ChartingActivity newInstance(String date) {
         Bundle bundle = new Bundle();
-        bundle.putSerializable("PARSED_LIST", parsedMessageList);
+        SimpleDateFormat olddateFormat = new SimpleDateFormat("MMM-yyyy");
+        Date d = null;
+        try {
+            d = olddateFormat.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        DateFormat dateFormat = new SimpleDateFormat("MM-YYYY", Locale.ENGLISH);
+        String monthYear = dateFormat.format(d);
+        bundle.putSerializable("date", monthYear);
         ChartingActivity chartingActivity = new ChartingActivity();
         chartingActivity.setArguments(bundle);
         return chartingActivity;
-
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.activity_charting, null);
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .build();
+        realm = Realm.getInstance(config);
         return root;
     }
 
@@ -64,16 +84,41 @@ public class ChartingActivity extends Fragment {
         super.onAttach(context);
     }
 
-    public void update(ArrayList<SpendingModel> parsedMessageList) {
-        Log.i(TAG, "update() " + parsedMessageList.size());
-        //      if (!calculationDone) {
-            for (SpendingModel spendingModel : parsedMessageList) {
-                if (spendingModel.isDebit()) {
-                    eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
+    public void update(String date) {
+        SimpleDateFormat olddateFormat = new SimpleDateFormat("MMM-yyyy", Locale.US);
+        Date d = null;
+        try {
+            d = olddateFormat.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        DateFormat dateFormat = new SimpleDateFormat("MM-YYYY", Locale.US);
+        String monthYear = dateFormat.format(d);
+
+        RealmResults<SpendingModel> realmResults = realm.where(SpendingModel.class)
+                .sort("_monthYear")
+                .equalTo("_monthYear", monthYear)
+                .findAll();
+
+        if (parsedMessageList != null) {
+            parsedMessageList.clear();
+        } else {
+            parsedMessageList = new ArrayList<>();
+        }
+
+        for (SpendingModel spendingModel : realmResults) {
+            parsedMessageList.add(realm.copyFromRealm(spendingModel));
+        }
+
+        eachSpendingModel = null;
+        eachSpendingModel = new HashMap<>();
+        for (SpendingModel spm : parsedMessageList) {
+            if (spm.isDebit()) {
+                eachSpendingModel.put(spm.getCategory(), eachSpendingModel.getOrDefault(spm.getCategory(), 0.0f) + spm.getAmount());
                 }
                 calculationDone = true;
             }
-        //    }
+
 
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);
@@ -85,17 +130,28 @@ public class ChartingActivity extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate: Creating the Pie chart");
-
         eachSpendingModel = new HashMap<>();
-        parsedMessageList = (ArrayList<SpendingModel>) getArguments().getSerializable("PARSED_LIST");
-//        if (!calculationDone) {
-            for (SpendingModel spendingModel : parsedMessageList) {
-                if (spendingModel.isDebit()) {
-                    eachSpendingModel.put(spendingModel.getCategory(), eachSpendingModel.getOrDefault(spendingModel.getCategory(), 0.0f) + spendingModel.getAmount());
-                }
-                calculationDone = true;
+        parsedMessageList = new ArrayList<>();
+        String monthYear = getArguments().getString("date");
+        Log.i(TAG, "update() " + parsedMessageList.size());
+        RealmResults<SpendingModel> realmResults = realm.where(SpendingModel.class)
+                .sort("_monthYear")
+                .equalTo("_monthYear", monthYear)
+                .findAll();
+
+        for (SpendingModel spendingModel : realmResults) {
+            parsedMessageList.add(realm.copyFromRealm(spendingModel));
+        }
+
+        eachSpendingModel = null;
+        eachSpendingModel = new HashMap<>();
+        for (SpendingModel spm : parsedMessageList) {
+            if (spm.isDebit()) {
+                eachSpendingModel.put(spm.getCategory(), eachSpendingModel.getOrDefault(spm.getCategory(), 0.0f) + spm.getAmount());
             }
-        //      }
+            calculationDone = true;
+        }
+
 
         List<String> tempList = new ArrayList<>(eachSpendingModel.keySet());
         xData = tempList.toArray(new String[0]);
@@ -104,7 +160,6 @@ public class ChartingActivity extends Fragment {
         pieChart = view.findViewById(R.id.pc_mainpie);
         Description description = new Description();
         description.setText("Expenses");
-//        description.setTextSize(20);
         pieChart.setDescription(description);
         pieChart.setRotationEnabled(true);
         pieChart.setUsePercentValues(true);
