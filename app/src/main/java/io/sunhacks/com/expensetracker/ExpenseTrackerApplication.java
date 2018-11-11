@@ -10,6 +10,7 @@ public class ExpenseTrackerApplication extends Application {
         super.onCreate();
 
         Realm.init(this);
+
     }
 }
 

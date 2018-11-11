@@ -5,8 +5,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.icu.util.Calendar;
 import android.graphics.drawable.Drawable;
+import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 import io.sunhacks.com.expensetracker.Model.Sms;
 import io.sunhacks.com.expensetracker.Model.SpendingModel;
 
@@ -69,6 +70,21 @@ public class HomeActivity extends AppCompatActivity {
     private Realm realm;
     public boolean parsed = false;
 
+    String minMonth = "12-2222";
+    String maxMonth = "01-1970";
+
+    public void getDataForMonth(String month) {
+        if (parsedList != null)
+            parsedList.clear();
+        RealmResults<SpendingModel> realmResults = realm.where(SpendingModel.class)
+                .sort("_monthYear")
+                .equalTo("_monthYear", "11-2018")
+                .equalTo("_debit", true)
+                .findAll();
+        for (SpendingModel spendingModel : realmResults) {
+            parsedList.add(realm.copyFromRealm(spendingModel));
+        }
+    }
     public void initMerchantCategoryMap() {
         merchantCategoryMap = new HashMap<>();
         List<String> transportBusinesses = Arrays.asList(getResources().getStringArray(R.array.transportation));
@@ -99,27 +115,8 @@ public class HomeActivity extends AppCompatActivity {
         RealmConfiguration config = new RealmConfiguration.Builder()
                 .deleteRealmIfMigrationNeeded()
                 .build();
+        Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
-
- /*       btnExport.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (csvWriter == null) {
-                    csvWriter = new CSVWriter();
-                }
-
-                File export_csv_File;
-                export_csv_File = new File(EXPORT_FILE_NAME);
-                if (!export_csv_File.exists()) {
-                    try {
-                        export_csv_File.createNewFile();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                csvWriter.exportMessages(export_csv_File, parsedList, CSV_HEADER, ",");
-            }
-        });*/
     }
 
     public boolean checkIsDebit(String message, String account) {
@@ -298,11 +295,9 @@ public class HomeActivity extends AppCompatActivity {
         return d;
     }
 
-    public ArrayList<SpendingModel> parseSms(List<Sms> messages) {
+    public void parseSms(List<Sms> messages) {
         float totalAmount = 0;
-        ArrayList<SpendingModel> parsedList = new ArrayList<>();
-
-
+        parsedList = new ArrayList<>();
         for (Sms message : messages) {
             SpendingModel spendingModel = new SpendingModel();
             spendingModel.setAccount(numberAccountMap.get(message.getAddress()));
@@ -315,7 +310,7 @@ public class HomeActivity extends AppCompatActivity {
             spendingModel.setRawMessage(message);
             spendingModel.setMerchant(parseMerchant(strMsg, spendingModel.getAccount()));
             Date d = new Date((long) Double.parseDouble(message.getTime()));
-            DateFormat dateFormat = new SimpleDateFormat("MMMyyyy", Locale.ENGLISH);
+            DateFormat dateFormat = new SimpleDateFormat("MM-yyyy", Locale.ENGLISH);
             spendingModel.setMonthYear(dateFormat.format(d));
             Log.d("MonthYear", spendingModel.getMonthYear());
             spendingModel.setSmsTime(d);
@@ -330,20 +325,30 @@ public class HomeActivity extends AppCompatActivity {
             spendingModel.setAmount(amount);
             Date currentTime = Calendar.getInstance().getTime();
             String currentDate = dateFormat.format(currentTime);
+          /*
             if (currentDate.equalsIgnoreCase(spendingModel.getMonthYear())) {
                 parsedList.add(spendingModel);
             }
+           */
             realm.executeTransaction(new Realm.Transaction() {
                 @Override
                 public void execute(Realm realm) {
                     realm.copyToRealm(spendingModel);
                 }
             });
+
+            if (minMonth.compareToIgnoreCase(spendingModel.getMonthYear()) > 0) {
+                minMonth = spendingModel.getMonthYear();
+            }
+
+            if (maxMonth.compareToIgnoreCase(spendingModel.getMonthYear()) < 0) {
+                maxMonth = spendingModel.getMonthYear();
+            }
         }
         dNetSpending = totalAmount;
-
+        Log.d("Years", "Max:" + maxMonth + " Min:" + minMonth);
         dnProgress.setText(String.format("$%.2f", dNetSpending));
-        return parsedList;
+        getDataForMonth("09");
     }
 
     public void getPermission() {
@@ -390,7 +395,7 @@ public class HomeActivity extends AppCompatActivity {
         List<Sms> allMessages;
         allMessages = getAllMessages();
         messages = filterSms(allMessages);
-        parsedList = parseSms(messages);
+        parseSms(messages);
         if (chartingActivity != null) {
             chartingActivity.update(parsedList);
         }
