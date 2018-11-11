@@ -25,10 +25,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
 
@@ -62,6 +66,7 @@ public class HomeActivity extends AppCompatActivity {
     private DonutProgress dnProgress = null;
     private FrameLayout flCharts = null;
     private ChartingActivity chartingActivity = null;
+    private Spinner spMonth = null;
 
     private double dNetSpending = 0;
     private CSVWriter csvWriter = null;
@@ -134,7 +139,7 @@ public class HomeActivity extends AppCompatActivity {
 
         dnProgress = findViewById(R.id.donut_progress);
         flCharts = findViewById(R.id.fl_charts);
-
+        spMonth = findViewById(R.id.spMonths);
 
         RealmConfiguration config = new RealmConfiguration.Builder()
                 .deleteRealmIfMigrationNeeded()
@@ -185,6 +190,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void showChart() {
+
         if (chartingActivity == null) {
             chartingActivity = ChartingActivity.newInstance(parsedList);
         }
@@ -425,7 +431,91 @@ public class HomeActivity extends AppCompatActivity {
             chartingActivity.update(parsedList);
         }
         parsed = true;
+        showSpinner();
         Log.i(LOG_TAG, "getAndFilterAllMsgs() End " + parsedList.size());
+    }
+
+    public List<String> getMonth(Date[] range) {
+        java.util.Calendar calendar = java.util.Calendar.getInstance(Locale.US);
+
+        if (range[0] == null) {
+            return null;
+        }
+        Log.d(LOG_TAG, " getStakeoutPointCountByMonth() startDate - endDate: " + range[0] + " - " + range[1]);
+        calendar.setTime(range[0]);
+        int year = calendar.get(java.util.Calendar.YEAR);
+        int startingMonthNumber = calendar.get(java.util.Calendar.MONTH);
+        calendar.clear();
+        calendar.setTime(range[1]);
+        int endingMonthNumber = calendar.get(java.util.Calendar.MONTH);
+
+        if (calendar.get(java.util.Calendar.YEAR) != year) {
+            int yearDiff = calendar.get(java.util.Calendar.YEAR) - year;
+            endingMonthNumber += (yearDiff * 12);
+        }
+        Log.i(LOG_TAG, "Month Range " + startingMonthNumber + " " + endingMonthNumber);
+        calendar.clear();
+
+        int month;
+        StringBuilder monthString = new StringBuilder();
+        List l = new ArrayList();
+        for (int i = startingMonthNumber; i <= endingMonthNumber; i++) {
+//            month = i % 12;
+            month = (i % 12) - 1;
+            if (month < 10) {
+                monthString.append("0");
+            }
+
+            //month+1 - because the result from db has month starting from 1-12 and calendar function has months from 0-11
+            monthString.append(month + "-" + year);
+            l.add(getMonthString(year, month));
+
+            monthString.setLength(0);//Will set empty
+        }
+        return l;
+    }
+
+    private String getMonthString(int year, int month) {
+        Date date = new Date(year, month, 1);
+        String formattedDate = (String) android.text.format.DateFormat.format("MMM-yy", date);
+        Log.i(LOG_TAG, "dates " + formattedDate);
+        return formattedDate;
+    }
+
+    private void showSpinner() {
+
+        List<String> list;
+
+        String[] startMonth = minMonth.split("-");
+        int month = Integer.parseInt(startMonth[0]);
+        int year = Integer.parseInt(startMonth[1]);
+
+        Date[] range = new Date[2];
+        range[0] = new Date(year, month, 1);
+
+        String[] endMonth = maxMonth.split("-");
+        month = Integer.parseInt(endMonth[0]);
+        year = Integer.parseInt(endMonth[1]);
+        range[1] = new Date(year, month, 1);
+        list = getMonth(range);
+
+        if (list != null && list.size() > 0) {
+            ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_spinner_item, list);
+            dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spMonth.setAdapter(dataAdapter);
+        }
+        spMonth.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                adapterView.getItemAtPosition(i).toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
     }
 
     @Override
