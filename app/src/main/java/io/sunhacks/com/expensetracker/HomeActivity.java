@@ -26,8 +26,6 @@ import android.widget.TextView;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
 
-import java.io.File;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,7 +65,7 @@ public class HomeActivity extends AppCompatActivity {
     public Map<String, List<String>> merchantCategoryMap = null;
     private static final String LOG_TAG = "EXPENSE_TRACKER";
     private Realm realm;
-
+    public boolean parsed = false;
     public void initMerchantCategoryMap() {
         merchantCategoryMap = new HashMap<>();
         List<String> transportBusinesses = Arrays.asList(getResources().getStringArray(R.array.transportation));
@@ -91,7 +89,6 @@ public class HomeActivity extends AppCompatActivity {
         btnExport = findViewById(R.id.btn_export);
         initMerchantCategoryMap();
 
-
         dnProgress = findViewById(R.id.donut_progress);
         flCharts = findViewById(R.id.fl_charts);
 
@@ -101,7 +98,7 @@ public class HomeActivity extends AppCompatActivity {
                 .build();
         realm = Realm.getInstance(config);
 
-        btnExport.setOnClickListener(new View.OnClickListener() {
+ /*       btnExport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (csvWriter == null) {
@@ -119,7 +116,7 @@ public class HomeActivity extends AppCompatActivity {
                 }
                 csvWriter.exportMessages(export_csv_File, parsedList, CSV_HEADER, ",");
             }
-        });
+        });*/
     }
 
     public boolean checkIsDebit(String message, String account) {
@@ -147,7 +144,11 @@ public class HomeActivity extends AppCompatActivity {
             Log.i(LOG_TAG, "permission not granted");
             getPermission();
         } else {
-            getANdFilterAllMsgs();
+            if (!parsed) {
+                getANdFilterAllMsgs();
+            } else {
+                showChart();
+            }
         }
         messages = new ArrayList();
         rvAdapter = new MessageAdapter(parsedList, this);
@@ -367,7 +368,12 @@ public class HomeActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getANdFilterAllMsgs();
+                    if (!parsed) {
+                        getANdFilterAllMsgs();
+                    } else {
+                        showChart();
+                    }
+                         
                     rvAdapter.notifyDataSetChanged();
                 } else {
                     //SHow message to User
@@ -385,7 +391,7 @@ public class HomeActivity extends AppCompatActivity {
         if (chartingActivity != null) {
             chartingActivity.update(parsedList);
         }
-        showChart();
+        parsed = true;
         Log.i(LOG_TAG, "getAndFilterAllMsgs() End " + parsedList.size());
     }
 
