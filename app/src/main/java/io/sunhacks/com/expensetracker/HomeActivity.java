@@ -144,7 +144,7 @@ public class HomeActivity extends AppCompatActivity {
         rvMessagesList.setAdapter(rvAdapter);
         rvMessagesList.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter.notifyDataSetChanged();
-        if (parsedList.size() > 0) {
+        if (parsedList != null && parsedList.size() > 0) {
             showChart();
         }
     }
