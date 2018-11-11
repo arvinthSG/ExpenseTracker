@@ -88,7 +88,7 @@ public class HomeActivity extends AppCompatActivity {
         if (parsedList != null)
             parsedList.clear();
         // Horrible hack to conver MMM to MM.
-        String strdate = "22-" + month + "-1970";
+        String strdate = "22-" + month;
         SimpleDateFormat olddateFormat = new SimpleDateFormat("dd-MMM-yyyy");
         Date d = null;
         try {
@@ -96,9 +96,8 @@ public class HomeActivity extends AppCompatActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        DateFormat dateFormat = new SimpleDateFormat("MM", Locale.ENGLISH);
-        String m = dateFormat.format(d);
-        String monthYear = m + "-2018";
+        DateFormat dateFormat = new SimpleDateFormat("MM-YYYY", Locale.ENGLISH);
+        String monthYear = dateFormat.format(d);
         Log.d("MonthYear", monthYear);
         RealmResults<SpendingModel> realmResults = realm.where(SpendingModel.class)
                 .sort("_monthYear")
