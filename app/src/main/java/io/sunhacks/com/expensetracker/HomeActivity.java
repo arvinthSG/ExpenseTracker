@@ -5,7 +5,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -23,19 +22,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,10 +61,7 @@ public class HomeActivity extends AppCompatActivity {
     private static final String EXPORT_FILE_NAME = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "message_data1.csv";
     private static final String CSV_HEADER = "Amount,Merchant,Category,Account,Time";
     public Map<String, List<String>> merchantCategoryMap = null;
-    private Map<String, Float> eachSpendingModel = null;
     private static final String LOG_TAG = "EXPENSE_TRACKER";
-    private String[] xData;
-    private Float[] yData;
 
     public void initMerchantCategoryMap() {
         merchantCategoryMap = new HashMap<>();
@@ -250,9 +236,13 @@ public class HomeActivity extends AppCompatActivity {
             case Constants.DISCOVER:
                 pattern = Pattern.compile("at (.*?) was", Pattern.MULTILINE);
                 Matcher matcher = pattern.matcher(smsString);
-
                 while (matcher.find()) {
                     merchant = matcher.group(1);
+                }
+                if (merchant.toLowerCase().contains("lyft")) {
+                    merchant = "LYFT";
+                } else if (merchant.toLowerCase().contains("lime")) {
+                    merchant = "LIME";
                 }
                 break;
             case Constants.CHASE:
@@ -395,7 +385,7 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(MessageAdapter.ViewHolder holder, int position) {
             if (holder != null) {
-                SpendingModel newSms = (SpendingModel) parsedList.get(position);
+                SpendingModel newSms = parsedList.get(position);
                 holder.tvMessageMerchant.setText(newSms.getMerchant());
                 String amount = String.valueOf(newSms.getAmount());
                 if (newSms.isDebit()) {

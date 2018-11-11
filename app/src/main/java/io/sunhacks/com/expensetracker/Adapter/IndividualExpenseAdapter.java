@@ -12,6 +12,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Locale;
 
 import io.sunhacks.com.expensetracker.Model.IndividualExpenseModel;
 import io.sunhacks.com.expensetracker.R;
@@ -25,7 +26,7 @@ public class IndividualExpenseAdapter extends RecyclerView.Adapter<IndividualExp
         IndividualExpenseModel individualExpenseModel = individualExpensesListModel.get(position);
         holder.title.setText(individualExpenseModel.getTitle());
         holder.progressBar.setProgress(individualExpenseModel.getProgress());
-        holder.amount.setText(String.valueOf(individualExpenseModel.getAmount()));
+        holder.amount.setText(String.format(Locale.ENGLISH, "%0.2f", String.valueOf(individualExpenseModel.getAmount())));
     }
 
 
