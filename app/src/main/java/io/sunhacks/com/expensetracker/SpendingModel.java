@@ -4,10 +4,10 @@ package io.sunhacks.com.expensetracker;
 import java.io.Serializable;
 import java.util.Date;
 
-import io.sunhacks.com.expensetracker.Sms;
+import io.realm.RealmObject;
 
 
-public class SpendingModel implements Serializable {
+public class SpendingModel extends RealmObject implements Serializable {
 
     // Amount that was spent
     private float _amount;

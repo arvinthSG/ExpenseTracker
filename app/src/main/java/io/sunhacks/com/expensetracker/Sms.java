@@ -2,7 +2,9 @@ package io.sunhacks.com.expensetracker;
 
 import java.io.Serializable;
 
-public class Sms implements Serializable{
+import io.realm.RealmObject;
+
+public class Sms extends RealmObject implements Serializable {
     private String _id;
     private String _address;
     private String _msg;
