@@ -29,6 +29,7 @@ import android.widget.TextView;
 import com.github.lzyzsd.circleprogress.DonutProgress;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,15 +77,29 @@ public class HomeActivity extends AppCompatActivity {
     public void getDataForMonth(String month) {
         if (parsedList != null)
             parsedList.clear();
+        // Horrible hack to conver MMM to MM.
+        String strdate = "22-" + month + "-1970";
+        SimpleDateFormat olddateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+        Date d = null;
+        try {
+            d = olddateFormat.parse(strdate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        DateFormat dateFormat = new SimpleDateFormat("MM", Locale.ENGLISH);
+        String m = dateFormat.format(d);
+        String monthYear = m + "-2018";
+        Log.d("MonthYear", monthYear);
         RealmResults<SpendingModel> realmResults = realm.where(SpendingModel.class)
                 .sort("_monthYear")
-                .equalTo("_monthYear", "11-2018")
+                .equalTo("_monthYear", monthYear)
                 .equalTo("_debit", true)
                 .findAll();
         for (SpendingModel spendingModel : realmResults) {
             parsedList.add(realm.copyFromRealm(spendingModel));
         }
     }
+
     public void initMerchantCategoryMap() {
         merchantCategoryMap = new HashMap<>();
         List<String> transportBusinesses = Arrays.asList(getResources().getStringArray(R.array.transportation));
@@ -348,7 +363,7 @@ public class HomeActivity extends AppCompatActivity {
         dNetSpending = totalAmount;
         Log.d("Years", "Max:" + maxMonth + " Min:" + minMonth);
         dnProgress.setText(String.format("$%.2f", dNetSpending));
-        getDataForMonth("09");
+        getDataForMonth("NOV");
     }
 
     public void getPermission() {
